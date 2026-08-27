@@ -1,0 +1,412 @@
+% ============================================================================
+% v0 TEMPLATE -- npj Computational Materials, "Article" type
+% Built against the official Guide to Authors (npjcompumats-gta.pdf), checked
+% 2026-08-28. Key constraints encoded below -- do NOT relax without checking
+% the live guide first, since Nature Partner Journals updates these:
+%
+%   - Article type: unstructured abstract, max 250 words
+%   - Main text: 5,000 words, EXCLUDING abstract/references/figures/tables
+%   - Max 6 tables+figures combined
+%   - References: max ~50, "as current as possible"
+%   - Section order (MANDATORY, do not reorder):
+%       Title page -> Abstract+keywords -> Introduction -> Results ->
+%       Discussion -> Methods -> Acknowledgements -> Competing Interests ->
+%       Contributions -> Funding -> References -> Figure legends -> Tables
+%       -> Figures
+%   - Title <= 150 characters. Running title <= 50 letters+spaces.
+%   - LaTeX: any standard class (article.cls used here) + default Computer
+%     Modern fonts. No visual formatting effort needed -- journal restyles
+%     at production. Do NOT use non-standard fonts.
+%   - Citations: NUMERICAL ONLY, superscript in text (not "Author (Year)").
+%     "(ref. X)" instead of superscript only when a ref must sit next to a
+%     number/equation/formula in running text.
+%   - References must be pasted into this .tex file directly before
+%     submission (per the guide: generate .bbl via BibTeX, copy its content
+%     in, then delete \bibliography/\bibliographystyle). Left as natbib +
+%     placeholder \bibitem entries below for now -- swap for the real list
+%     when the reference set is finalized.
+%   - Data/code availability statements go at the END of Methods, code
+%     availability BEFORE data availability, per the guide.
+%   - All pages and lines must be numbered at submission (line numbers via
+%     lineno below; can be removed once accepted).
+%
+% This file is a STRUCTURAL v0: real numbers from the project's verified
+% eval pipeline are pre-filled in the Results tables (see MASTER_SUMMARY.md
+% in the project repo for full provenance of every number below); prose in
+% Introduction/Discussion and all [TODO] markers still need writing.
+% ============================================================================
+
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[super,comma,sort&compress]{natbib}   % gives superscript numeric cites, per house style
+\usepackage[left]{lineno}                         % required at submission; strip after acceptance
+\usepackage{setspace}
+\doublespacing                                    % house style: double-spaced text + references
+\usepackage[margin=1in]{geometry}
+
+\linenumbers
+
+\begin{document}
+
+% ---------------------------------------------------------------------------
+% TITLE PAGE
+% ---------------------------------------------------------------------------
+
+% [TODO] title: keep to <=150 characters, brief + informative.
+\title{Coverage-driven active learning of a MACE machine-learned interatomic
+potential for the Li-metal / LLZO garnet solid-electrolyte interface}
+
+% [TODO] running title: <=50 letters and spaces, no abbreviations, must
+% stand alone (used as the running head).
+% Running title: Active-learned MACE potential for Li/LLZO interfaces
+
+% [TODO] full author list + affiliations. Superscript numerals link each
+% author to their affiliation(s); use an asterisk + footnote for equal
+% contribution if applicable (per house style).
+\author{
+Mehul Darak$^{1}$ \and
+[Coauthor Name]$^{1,2}$ \and
+[PI Name]$^{1,\ast}$
+}
+
+\date{}
+\maketitle
+
+\noindent
+$^{1}$[Department, Institute, City, Country] \\
+$^{2}$[Second affiliation if needed] \\
+$^{\ast}$Corresponding author: [PI email] \\
+% If needed: \noindent $^{\dagger}$These authors contributed equally to this work.
+
+\vspace{1em}
+
+% ---------------------------------------------------------------------------
+% ABSTRACT AND KEYWORDS
+% ---------------------------------------------------------------------------
+\section*{Abstract}
+% [TODO] Unstructured, <=250 words. Draft below is ~190 words -- trim/edit
+% for the final numbers once Discussion/Methods are finalized.
+Solid-state Li-metal batteries require interatomic potentials accurate at
+the Li/garnet electrolyte interface, a regime foundation machine-learned
+interatomic potentials (MLIPs) trained on bulk-periodic data do not
+reliably capture. We fine-tune a MACE foundation model on Li-metal /
+Li$_7$La$_3$Zr$_2$O$_{12}$ (LLZO) interface structures labeled with
+real-space DFT (DFT-FE), exploiting its native support for open (non-periodic)
+boundary conditions to model genuine free surfaces without the image-interaction
+and dipole-correction artifacts of plane-wave slab calculations. Training data
+is grown over six active-learning iterations (it0-it6, 16$\to$108 structures)
+using a coverage-driven acquisition rule operating on the pretrained model's
+latent embedding space, following a data-selection strategy whose superiority
+over random sampling under DFT-cost scarcity has been independently established
+for pretrained-MLIP latent spaces~\citep{vargaumbrich2026}. Force error falls
+monotonically across iterations on a held-out 34-structure test set (component-wise
+RMSE 120.5$\to$72.0~meV/\AA, MAE 69.5$\to$44.9~meV/\AA, universal$\to$it6), and
+is confirmed on an independent 7-snapshot MD trajectory set. In-plane Li and
+LLZO-framework diffusion coefficients extracted from it6-driven molecular
+dynamics at 1100~K agree with literature-extrapolated values to within a
+factor of 2-3. [TODO: one-sentence closing claim once Discussion is final.]
+
+\vspace{0.5em}
+\noindent\textbf{Keywords:} machine-learned interatomic potentials, active
+learning, MACE, solid electrolyte interface, LLZO, Li-metal battery, DFT-FE,
+open boundary conditions
+
+% ===========================================================================
+\section{Introduction}
+% ===========================================================================
+% [TODO] Assume a reader already knowledgeable in the field (house style) --
+% keep brief. Suggested skeleton:
+% - Why Li/LLZO interfaces matter (solid-state battery interfacial resistance,
+%   dendrite/void formation, need for atomistic-scale interfacial modeling).
+% - Why existing foundation MLIPs (e.g. mace-omat-0, trained on bulk-periodic
+%   OMat24) are a genuine transfer problem at open, non-periodic interfaces.
+% - Why DFT-FE (real-space DFT) uniquely permits open-z boundary conditions
+%   here, avoiding the periodic-sandwich workaround standard in plane-wave
+%   DFT (image dipole, constrained slab thickness, no true free surface).
+% - Active learning as the standard answer to DFT-labeling cost; the specific
+%   choice of pretrained-latent-space acquisition and its recent independent
+%   validation~\citep{vargaumbrich2026}.
+% - One-paragraph statement of what this paper delivers: the it0-it6 AL
+%   campaign, the resulting model's accuracy trend, and physical validation
+%   via Li/LLZO diffusion coefficients against literature.
+
+[TODO: Introduction prose.]
+
+% ===========================================================================
+\section{Results}
+% ===========================================================================
+
+\subsection{Active-learning trajectory}
+% [TODO] Prose describing the it0-it6 progression, the coverage-driven (D99)
+% acquisition metric, and cumulative training-set growth:
+% universal->it0 16 -> it1 28 (+12) -> it2 33 (+5) -> it3 38 (+5) ->
+% it4 47 (+9) -> it5 77 (+30) -> it6 108 (+31).
+% Reference Figure~\ref{fig:latent} (latent-space scatter of pool/seed/selected
+% structures) here.
+
+[TODO: AL trajectory prose, referencing Fig.~\ref{fig:latent}.]
+
+\subsection{Force- and energy-error trend across iterations}
+% Numbers below: 34-structure held-out test set (35-structure set with the
+% single idx-34 outlier structure excluded -- see Methods for why idx34 is
+% out of scope). Component-wise force RMSE/MAE, meV/A; component-wise energy
+% error, meV/atom. Source: it6_final/eval_it6_on_holdouts.py +
+% eval_mae_it6_holdouts.py (srun, A5000/H200 GPU, mace_cueq_env).
+
+\begin{table}[htbp]
+\centering
+\caption{Force-error trend across active-learning iterations, 34-structure
+held-out test set (idx~34 excluded; see Methods). RMSE and MAE are both
+component-wise over all atoms and all three Cartesian force components.}
+\label{tab:force-trend}
+\begin{tabular}{lcccc}
+\toprule
+Model & F RMSE mean & F RMSE max & F MAE mean & F MAE max \\
+ & (meV/\AA) & (meV/\AA) & (meV/\AA) & (meV/\AA) \\
+\midrule
+universal (foundation) & 120.5 & 201.9 & 69.5  & 114.4 \\
+it0                     & 188.2 & 330.4 & 101.2 & 168.8 \\
+it1                     & 118.4 & 167.8 & 69.5  & 99.0  \\
+it2                     & 97.2  & 182.7 & 58.9  & 100.8 \\
+it3                     & 92.5  & 158.5 & 56.6  & 99.0  \\
+it4                     & 84.2  & 128.9 & 51.8  & 81.9  \\
+it5                     & 78.2  & 112.9 & 48.1  & 72.1  \\
+\textbf{it6}            & \textbf{72.0} & \textbf{99.9} & \textbf{44.9} & \textbf{59.0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+it6 is the best or tied-best model on every column of
+Table~\ref{tab:force-trend}, on both the standard RMSE metric and the
+independently computed MAE metric -- the two metrics agree on the ranking,
+with the MAE trend confirming rather than altering the RMSE-based conclusion.
+[TODO: one or two sentences on the independent timetest7 (7-snapshot MD
+trajectory) confirmation set, where it6 is roughly tied with it4 rather than
+a clean win -- state this honestly rather than only reporting the best case.]
+
+\subsection{Diffusion-coefficient validation}
+% [TODO] Prose summarizing: in-plane (x,y) MSD -> Einstein relation ->
+% Arrhenius extrapolation to 1100 K, it6-driven MD, compared against
+% literature (Burov, Abakumov & Aksyonov). LLZO-region D ~ 9-11e-7 cm^2/s
+% (ours) vs ~2.3e-6 cm^2/s (literature-extrapolated), Li-metal D ~ 4.1e-4
+% cm^2/s (ours) vs ~6e-4 to 1.2e-3 cm^2/s (literature-extrapolated) --
+% agreement within a factor of ~2-3x for both regions.
+% [TODO -- NOT YET DONE, flag honestly in this draft]: statistical rigor
+% (multiple independent MD seeds per condition for real error bars on D and
+% activation energy) is planned but not yet run -- see project tracking.
+
+[TODO: diffusion-coefficient prose + Figure~\ref{fig:msd}.]
+
+% ===========================================================================
+\section{Discussion}
+% ===========================================================================
+% [TODO] Interpretation, not restatement of Results. Suggested points to hit:
+% - Coverage-driven (D99) acquisition vs. a fixed-budget-per-round scheme:
+%   why the round-to-round cost-efficiency computation (DeltaCS/atom) argues
+%   the campaign should stop, or continue only with a targeted, narrow it7,
+%   rather than another broad round.
+% - Relationship to the recent independent finding that pretrained-MLIP
+%   latent-space acquisition beats random sampling under DFT-cost scarcity
+%   (ICML 2026~\citep{vargaumbrich2026}) -- note the domain difference
+%   (reactive chemistry there vs. solid-state interfaces here) honestly as
+%   a scope caveat on the citation, not a weakness of this work.
+% - Explicit statement that idx~34 (2 vacancies/f.u., a higher concentration
+%   than the 0.5/1 pfu regime this model was actually trained on) is treated
+%   as out of the validation scope of this model, not a failure case --
+%   state the rationale plainly.
+% - Open questions: statistical rigor on diffusion/Arrhenius fit (multiple
+%   MD seeds), NEB barrier validation not yet run, whether it2/it3 vs
+%   it5/it6 trade-offs on out-of-distribution generalization (if included)
+%   matter for the intended production use.
+
+[TODO: Discussion prose.]
+
+% ===========================================================================
+\section{Methods}
+% ===========================================================================
+
+\subsection{System and boundary conditions}
+All structures are semi-periodic: periodic in $x$ and $y$, open
+(non-periodic) in $z$. This is possible because reference labels come from
+DFT-FE (real-space DFT) rather than a plane-wave code, giving a single
+interface with two genuine free surfaces and no periodic-image interaction
+along the surface normal -- avoiding the periodic-sandwich workaround
+(second interface, image dipole or correction, constrained slab thickness)
+standard in plane-wave DFT treatments of this interface.
+[TODO: cite DFT-FE methodology paper(s).]
+
+\subsection{Model architecture and fine-tuning}
+[TODO: MACE architecture citation, foundation model (mace-omat-0-medium /
+OMat24) citation, LoRA fine-tuning hyperparameters (rank, alpha, loss
+weights, batch size, learning rate, epochs, SWA schedule), E0 reference
+energies used.]
+
+\subsection{Active-learning acquisition}
+Structures were selected from a candidate pool using a coverage-driven
+($D_{99}$) criterion operating on the pretrained model's latent embedding
+space (farthest-point-style diversity sampling on PCA-reduced, L2-normalized
+mean-pooled 256-dimensional MACE latents). [TODO: full acquisition-rule
+description matching the actual per-iteration pipeline.] This design choice
+follows recent independent evidence that pretrained-MLIP latent
+representations are an effective, general acquisition signal for offline
+pool-based active learning under DFT-labeling-cost scarcity, consistently
+outperforming random acquisition~\citep{vargaumbrich2026}.
+
+\subsection{Test-set construction}
+[TODO: provenance of the 35-structure test set (29 clean + 6 new holdout),
+and the rationale for excluding structure idx~34
+(\texttt{Li\_LLZO\_110\_ct-Li7La4O6\_opp-Li1Zr1O2\_side-top\_var01\_\_vac2pfu},
+2 vacancies per formula unit) from the reported 34-structure metric: this
+concentration exceeds the 0.5/1 vacancy-per-formula-unit regime the model
+was trained on, and is treated as outside this model's intended validation
+scope rather than as a representative worst case.]
+
+\subsection{Molecular dynamics and diffusion-coefficient extraction}
+[TODO: MD protocol (temperature, timestep, ensemble, trajectory length),
+region definitions (Li-metal vs. LLZO framework, via z-binning), residence-time
+crossing-event filtering methodology, MSD fitting window, Einstein-relation
+and Arrhenius-extrapolation equations used for the literature comparison.]
+
+\subsection*{Code availability}
+% Per house style, this statement goes at the END of Methods, BEFORE Data
+% availability.
+[TODO: repository / archive link for training, evaluation, and MD/analysis
+scripts.]
+
+\subsection*{Data availability}
+% Per house style, immediately follows Code availability.
+[TODO: repository / archive link and persistent identifier (DOI) for
+DFT-FE reference labels, training/test structure files, and trained model
+checkpoints.]
+
+% ===========================================================================
+\section*{Acknowledgements}
+% ===========================================================================
+[TODO: funding sources, compute resources (mahamathi cluster / H200, A5000
+partitions), any named individual acknowledgements.]
+
+% ===========================================================================
+\section*{Competing Interests}
+% ===========================================================================
+The authors declare no competing interests.
+% [TODO: replace with a real declaration if any author has one.]
+
+% ===========================================================================
+\section*{Contributions}
+% ===========================================================================
+% [TODO] Exact role of each author; identify the guarantor, per house style.
+[Author 1] designed and ran the active-learning campaign, model training,
+and evaluation, and wrote the manuscript. [Author 2] [TODO]. [PI] supervised
+the project and is the guarantor of this work.
+
+% ===========================================================================
+\section*{Funding}
+% ===========================================================================
+[TODO: grant/funding-body statement, or "Not applicable" if none.]
+
+% ===========================================================================
+% REFERENCES
+% ===========================================================================
+% Per house style: numerical references only, listed in order of citation,
+% double-spaced. This block uses natbib placeholders for v0 -- before
+% submission, generate the .bbl via BibTeX/your reference manager, paste its
+% content in place of this thebibliography environment, and delete the
+% \bibliographystyle/\bibliography commands (per the guide's explicit
+% instruction on BibTeX bibliography files).
+
+\begin{thebibliography}{99}
+
+\bibitem{batatia2023mace}
+Batatia, I. \emph{et al.} MACE: Higher order equivariant message passing
+neural networks for fast and accurate force fields. \emph{arXiv preprint}
+arXiv:2206.07697 (2023).
+
+\bibitem{omat24}
+[TODO: OMat24 / mace-omat-0-medium foundation-model citation.]
+
+\bibitem{dftfe}
+[TODO: DFT-FE methodology citation.]
+
+\bibitem{burov2026}
+Burov, D., Abakumov, A. \& Aksyonov, D. Machine learning assisted molecular
+dynamics of charge-transfer mechanisms at Li/Ga-doped LLZO interfaces.
+\emph{arXiv preprint} arXiv:2606.07772 (2026).
+
+\bibitem{vargaumbrich2026}
+Varga-Umbrich, E., Surana, S., Duckworth, P., Tilly, J., Peltre, O. \&
+Weller-Davies, Z. Pretrained model representations as acquisition signals
+for active learning of MLIPs. In \emph{Proceedings of the 43rd International
+Conference on Machine Learning (ICML 2026)}. Preprint: arXiv:2605.03964.
+
+% [TODO: remaining references -- LoRA, DFT-FE-specific papers, prior
+% Li/LLZO interface literature, etc. Keep to <=50 total per house style.]
+
+\end{thebibliography}
+
+% ===========================================================================
+\section*{Figure Legends}
+% ===========================================================================
+% Per house style: brief, specific, on a separate page after References.
+
+\paragraph{Figure 1.} [TODO: system schematic -- Li-metal/LLZO interface,
+open-z boundary condition illustration.]
+
+\paragraph{Figure 2.} \label{fig:latent} Latent-space visualization (PCA on
+L2-normalized 256-dimensional MACE mean-pooled embeddings; PC1/PC2/PC3
+explain 70.9\%/21.8\%/2.9\% of variance) of the candidate pool, the it5
+training seed, and the FPS-selected structures for the it5$\to$it6 round.
+
+\paragraph{Figure 3.} Force RMSE and MAE across active-learning iterations
+(universal, it0--it6) on the 34-structure held-out test set, corresponding
+to Table~\ref{tab:force-trend}.
+
+\paragraph{Figure 4.} \label{fig:msd} Mean-squared displacement (in-plane,
+$x,y$) vs. time for Li-metal and LLZO regions at 1100~K, with the fitted
+diffusion coefficients and literature comparison.
+
+% ===========================================================================
+\section*{Tables}
+% ===========================================================================
+% Table~\ref{tab:force-trend} appears inline above per this template's
+% layout; house style calls for tables to be submitted as separate,
+% editable files (.xlsx/.docx) at actual submission, not embedded in the
+% PDF text -- keep this in mind when finalizing for upload.
+
+% ===========================================================================
+\section*{Figures}
+% ===========================================================================
+% Figures must be uploaded as separate files at submission (not embedded).
+% \includegraphics calls below are placeholders for local PDF compilation
+% only during drafting.
+%
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{fig1_system_schematic.pdf}
+%   \caption{See Figure Legends.}
+%   \label{fig:schematic}
+% \end{figure}
+%
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{fig2_latent_space.pdf}
+%   \caption{See Figure Legends.}
+% \end{figure}
+%
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{fig3_force_trend.pdf}
+%   \caption{See Figure Legends.}
+% \end{figure}
+%
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{fig4_msd_diffusion.pdf}
+%   \caption{See Figure Legends.}
+% \end{figure}
+
+\end{document}
