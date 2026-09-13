@@ -1,0 +1,9 @@
+*.log
+*.aux
+*.out
+preview-*.png
+full-*.png
+half_*.png
+bottom-*.png
+zoomhero-*.png
+*_backup.tex
