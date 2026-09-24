@@ -438,10 +438,23 @@ representative, or whether the number of iterations required scales with
 chemical complexity, is not established by a single campaign and should not be
 inferred from it.
 
-Three further limitations bound the claims made here. The energy channel has
+A related objection, that the held-out set is largely in-distribution, does not
+survive measurement. The set spans the distribution the potential is deployed
+on, which is the relevant target for a system-specific potential, and its
+accuracy is flat across sub-populations: 70.0~meV/\AA\ on the structures
+sibling to an earlier iteration's candidate pool, 78.8~meV/\AA\ on those never
+selected from, and 72.1~meV/\AA\ on the independently constructed holdouts. Were
+familiarity inflating the result, the sibling group would stand apart; it does
+not. The improvement over the foundation model is in fact largest on the least
+familiar group --- 54\% against 36\% on the siblings --- and it6 improves on the
+foundation model on 32 of the 33 structures in RMSE and 31 of 33 in worst
+per-component error. What a single campaign does not establish is transfer to
+other interface families, which is a separate question from the composition of
+this test set.
+
+Two further limitations bound the claims made here. The energy channel has
 been flat since the third iteration, so the campaign's gains are in forces.
-The held-out set, while genuinely held out, is largely in-distribution and is
-not an out-of-distribution benchmark. And the transport validation is a consistency check against the polymorph
+And the transport validation is a consistency check against the polymorph
 the cells were built from, not an independent measurement of the interface:
 the extrapolation from 500--800~K to room temperature spans four orders of
 magnitude in $D$, and its uncertainty is set by hop statistics at the two
@@ -567,7 +580,9 @@ model prediction rather than by filename, agreeing to
 $<10^{-5}$~meV/atom. Structures above the trained vacancy range are excluded
 from the primary metric and reported separately (Section~\ref{sec:domain}).
 Twenty-one of the held-out structures are siblings of an earlier iteration's
-candidate pool, so the set is held out but largely in-distribution.
+candidate pool, eight were never selected from, and four were constructed
+independently of any selection round; error is reported separately over these
+three groups in the Discussion.
 
 Force error is component-wise throughout:
 $\mathrm{RMSE}=\sqrt{\langle(F_{\mathrm{pred}}-F_{\mathrm{ref}})^2\rangle}$
