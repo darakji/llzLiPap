@@ -7,7 +7,8 @@ material deliberately cut from the paper) and
 `/scratch/users/phanim/mehuldarak/it5_final/MASTER_SUMMARY.md` (~2000 lines,
 the project's full audit trail and the provenance of every number below).
 
-Written 2026-09-25. Manuscript at commit `f53e109`.
+Written 2026-09-25. Manuscript at commit `f53e109`; diffusion section filled
+2026-09-25 (see §4, updated).
 
 ---
 
@@ -115,7 +116,7 @@ Compiles clean under tectonic.
 | section | state |
 |---|---|
 | Title / authors / affiliations | Done. Corresponding author still unmarked (TODO, probably Prof. Motamarri) |
-| Abstract | Done except closing sentence, which waits on diffusion |
+| Abstract | Done, at the 250-word limit; do not add to it |
 | Introduction | Done |
 | Results — Open-boundary reference data | Done |
 | Results — Active-learning campaign | Done |
@@ -123,93 +124,66 @@ Compiles clean under tectonic.
 | Results — Residual error at the free surface | Done |
 | Results — Acquisition signal predicts DFT error | Done |
 | Results — Domain of validity | Done |
-| **Results — Diffusion-coefficient validation** | **STUB. This is the job.** |
+| Results — Diffusion-coefficient validation | Written from the 1 ns campaign (500–800 K, 5 replicas, 6 interfaces). Numbers to refresh at 5 ns |
 | Discussion | Done, incl. "Transfer to other systems" |
-| Methods — all subsections | Done except interface-construction detail and diffusion protocol |
-| References | 10 entries, 5 are `[TODO]` placeholders |
-| Figure legends | 5 figures defined; 3 need building, 1 waits on diffusion |
+| Methods — all subsections | Done except interface-construction detail |
+| References | 14 entries, 6 are `[TODO]` placeholders (ALCHEMI added) |
+| Figure legends | 5 figures defined; Fig 5 built (`figs/fig_diffusion.pdf`), Figs 1 and 3 still to build |
 
 **Display-item budget is FULL: 5 figures + 1 table = 6, and npj allows 6
 combined.** Adding a figure means removing one. Do not silently exceed this.
 
 ---
 
-## 4. The job: filling in the diffusion validation
+## 4. Diffusion validation: what was done and what still moves
 
-Three places must be edited together, and they must agree:
+**Status (2026-09-25).** The Results subsection, the Methods subsection, the
+Fig. 5 legend and the abstract sentence are written from the production
+campaign on PARAM Rudra (a different machine from the one in §2: home
+`/home/nsmext/phanim.iisc`, package `~/alchemi_a100_package`, the same
+`model/mace_it6_final_full_stagetwo.model`). Provenance of every number is
+`~/alchemi_a100_package/LOG.md` and
+`results/campaign_midT_lid/kinetics/report.md` there; the CSVs behind Fig. 5
+are copied into `data/` in this repo.
 
-1. **`\subsection{Diffusion-coefficient validation}`** (line ~333) — replace
-   the whole `[TODO ...]` block with real prose.
-2. **`\paragraph{Figure 5.}`** in Figure Legends (line ~666) — replace the
-   `[TODO]`; label is already `\label{fig:msd}` and is referenced from the
-   Results stub, so keep the label.
-3. **Abstract closing sentence** (line ~114) — one sentence, and it must not
-   overclaim relative to what the statistics support.
+**The protocol actually used (not the 1100 K Langevin stub):** six interfaces
+(the four 420–1378-atom seeds plus the two held-out frames idx0/idx1), 500,
+600, 700, 800 K, five replicas each, Nosé–Hoover (tau 100 fs), 2 fs, fp32
+cuEquivariance via the NVIDIA ALCHEMI toolkit, one or two systems per A100,
+100 nodes × 1 GPU. Oxide substrate frozen by the project rule; in addition the
+outermost max(0.15 t, 4 Å) of the Li slab is frozen as a bulk-electrode
+boundary (without it the strained slab with a free surface is liquid-like at
+every T tried, under any thermostat). Li inside LLZO is never constrained.
+1 ns per replica done; extension to 5 ns running (chain of 500k-step chunks,
+`results/campaign_midT_lid/chunk3_*` onward).
 
-Also finish `\subsection{Diffusion analysis}` in Methods (line ~541): fitting
-window, number of independent seeds, temperature set, Arrhenius extrapolation.
+**Analysis conventions in force** (script `scripts/09_li_kinetics.py`): drop
+100 ps; interior Li = ≥ 8 Å below the per-frame interface plane (98th
+percentile of La/Zr/O z) and ≥ 4 Å above the frozen wall, never enters the
+metal; MSD over all origins in unwrapped fractional coordinates, no COM
+correction; D = slope/6 over 10–300 ps lags (in-plane agrees within scatter);
+alpha = log–log slope; N_eff = TMSD/(3 Å)^2 (He et al. 2018); weighted
+Arrhenius over the four T; Nernst–Einstein with interior Li density, Haven 1;
+crossings with ±1.5 Å hysteresis band (Burov et al.). The older
+`diffusion_coeff.py` conventions listed in earlier versions of this file are
+superseded by that script; its two bugs (diagonal unwrap, hardcoded boundary)
+do not apply to it.
 
-### What is currently in the stub, and why it is not a result
+**What still moves.** When the 5 ns chunks finish: rerun
+`09_li_kinetics.py` and `11_structure_chemistry.py`, copy the two CSVs into
+`data/` with tag `5ns`, rebuild Fig. 5 with `figs/make_fig_diffusion.py 5ns`,
+and update the numbers in the Results subsection (800 K D range, alpha range,
+N_eff range, Ea range and mean, the sigma(300 K) list, the exchange Ea range)
+and the "1 ns per replica" statements in Results, Methods and the legend. If
+the 5 ns values disagree with the 1 ns ones, report the 5 ns values. The
+owed sanity checks are listed at the end of `SI_notes.md`; none of them is
+done, and the Results text does not claim them.
 
-Single-trajectory, no error bars:
-
-| region | this work (1 seed) | literature-extrapolated |
-|---|---|---|
-| LLZO | ~9–11 × 10⁻⁷ cm²/s | ~2.3 × 10⁻⁶ cm²/s |
-| Li metal | ~4.1 × 10⁻⁴ cm²/s | ~6 × 10⁻⁴ – 1.2 × 10⁻³ cm²/s |
-
-Agreement within 2–3× for both regions. **These numbers are in the draft
-explicitly marked as not-a-result.** They must be replaced by multi-seed values
-with genuine error bars, not merely re-stated. If the multi-seed runs disagree
-with the single-seed numbers, report the multi-seed values — do not reconcile.
-
-### Non-negotiable analysis conventions
-
-These are established project conventions. Deviating from them silently will
-produce wrong numbers that look plausible.
-
-- **Unwrap before any MSD.** Trajectories are stored wrapped in x,y
-  (`s5_MD.py:204` and the package's `03_md_ase_reference.py:66` both call
-  `atoms.wrap(pbc=[True,True,False])`). Wrapped MSD saturates near
-  `L²/6 ≈ 21 Å²` per dimension in the smallest cells — reached within tens of
-  ps at 1100 K.
-- **Unwrap in fractional coordinates, not with a diagonal box.** One of the MD
-  seeds has **γ = 111.54°**. `diffusion_coeff.py` uses
-  `box_xy = [cell[0,0], cell[1,1]]`, which is wrong for that cell and injects
-  spurious ~4 Å displacements. Correct form:
-  ```python
-  frac  = pos_xy @ np.linalg.inv(cell_xy)
-  dfrac = np.diff(frac, axis=0); dfrac -= np.round(dfrac)
-  disp  = dfrac @ cell_xy
-  ```
-  Unwrapping is unambiguous at the 100 fs snapshot interval (RMS Li
-  displacement ≈ 0.2 Å ≪ half-cell 5.6 Å).
-- **Do not apply a centre-of-mass drift correction.** The bottom LLZO is frozen
-  (`FixAtoms`), so the frame is already pinned. Li is 55–70 % of the atoms, so
-  subtracting an all-atom COM removes part of the real Li flux.
-- **Exclude z from the fit.** It is confined by slab thickness, not freely
-  diffusing. `D_2D = slope/4`. Use z only for region assignment.
-- **Assign regions relative to the measured interface plane per frame**, i.e.
-  `max(z)` over La/Zr/O, not a fixed height. `diffusion_coeff.py` hardcodes
-  `BOUNDARY_Z = 36.0`, correct for exactly one structure; the seeds have z
-  ranges spanning 6.8–62.7 Å and vacuum 12.7–36 Å, so a constant is wrong for
-  most of them.
-- **Exclude atoms frozen by the active-region constraint** from the mobile
-  population.
-- **Exclude region-crossers** from a lag window, for both regions.
-- Use **multiple time origins**.
-
-**Caveat worth stating in the paper:** Langevin friction is 10⁻³ fs⁻¹ = 1 ps⁻¹,
-which is on the strong side for transport and will suppress D somewhat relative
-to NVE. Fine for comparing structures under identical settings; must be
-declared if an absolute D is quoted.
-
-**Existing script:** `it5_final/snapshot_analysis_LLZO100/diffusion_coeff.py`.
-It gets multi-origin averaging, crosser exclusion and z-exclusion right, and
-gets the two things above (diagonal unwrap, hardcoded boundary) wrong. Fix
-rather than rewrite from scratch.
-
----
+**Reading of the result, decided:** interior D and Ea match the ordered
+tetragonal polymorph the cells were built from (Awaka 2009), not cubic/doped
+LLZO. Do not compare against Burov's cubic bulk numbers as if they were the
+target; the reference polymorph is tetragonal by construction (Methods,
+"System and boundary conditions").
 
 ## 5. Every number in the manuscript, with provenance
 
@@ -419,6 +393,7 @@ older paths in `MASTER_SUMMARY.md` say `/storage`; substitute `/scratch`.
 | diffusion analysis (has 2 bugs, see §4) | `it5_final/snapshot_analysis_LLZO100/diffusion_coeff.py` |
 | figure generation to adapt | `paper/poster/make_figs.py` |
 | MD convention constants | `alchemi_a100_package/scripts/common.py` |
+| production MD + kinetics (PARAM Rudra) | `~/alchemi_a100_package/{scripts/04_md_alchemi_batched.py, scripts/09_li_kinetics.py, scripts/11_structure_chemistry.py, results/campaign_midT_lid/}` |
 
 ---
 

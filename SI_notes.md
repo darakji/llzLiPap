@@ -116,3 +116,50 @@ uncertainty predicts realised DFT error at r = 0.85.
 - **Periodic-sandwich vs open-z comparison.** Building the same interface both
   ways and comparing a physical observable is the highest-value missing
   experiment; if the two differ, that result is the headline.
+
+## Diffusion campaign: full numbers and pending sanity checks (added 2026-09-25)
+
+**Where the numbers live.** `data/diffusion_by_T_1ns.csv` and
+`data/diffusion_arrhenius_1ns.csv` are verbatim copies of
+`alchemi_a100_package/results/campaign_midT_lid/kinetics/{by_T,arrhenius}.csv`
+on PARAM Rudra (home `/home/nsmext/phanim.iisc`). Per-system values (120 rows)
+are in `kinetics/systems.csv` there; the structural/chemical companion analysis
+(undercoordinated Zr/La at each termination, Li uptake from the metal, density
+profiles, z-resolved D, hop rates, RDFs) is in
+`results/campaign_midT_lid/chemistry/report.md`. `figs/make_fig_diffusion.py`
+rebuilds Fig. 5 from the CSVs; pass the tag of a newer copy (e.g. `5ns`) when
+the extension chunks finish.
+
+**Interior D at 800 K, 1 ns, mean over 5 replicas (cm2/s; alpha; N_eff):**
+Li(100)/LLZO(110) 1 vac 2.5e-7 (0.74, 17); LLZO(100)-ct 0.5 vac 1.6e-7 (0.66,
+16); LLZO(110)-ct 1 vac 2.4e-7 (0.74, 38); Li(111)/LLZO(001) 0.5 vac 1.1e-6
+(0.87, 216); held-out LLZO(100)-ct 2.0e-7 (0.71, 19); held-out LLZO(110)-ct
+4.3e-7 (0.81, 63). Arrhenius Ea (meV): 358+-60, 682+-105, 415+-42, 445+-33,
+403+-90, 588+-46. Nernst-Einstein sigma(300 K) in S/cm: 6.7e-6, 1.6e-9, 1.6e-6,
+3.6e-6, 1.7e-6, 4.6e-8. Tetragonal LLZO experiment (Awaka 2009): 1.6e-6 S/cm,
+540 meV. Interface-exchange Ea (crossings, no residence filter): 251, 226, 188,
+316, 391, 298 meV.
+
+**Why 500-800 K and not 300 K.** At 300-450 K with 0.5 ns the interior Li
+never left its cage (alpha ~ 0.1); the room-temperature number is only
+reachable by Arrhenius extrapolation. The Li-metal slab is liquid-like at
+>= 450 K with a free top surface under every thermostat tried (Nose-Hoover,
+Langevin at 1 and 0.1 /ps); freezing the outermost 15 % (>= 4 A) of the slab as
+a bulk-electrode boundary keeps it solid at 300 K and is the production setup.
+
+**Sanity checks still owed on the diffusion numbers (not yet done):**
+1. DFT-FE single points on 12 production frames (one 800 K mid-hop and one
+   500 K random frame per interface, `chemistry/dftfe_subset12/`): force error
+   of the fine-tune vs the foundation model under production conditions.
+2. NEB barrier of an interior Li vacancy hop, fine-tune vs DFT-FE.
+3. Convergence in run length: 1 ns vs 5 ns (extension chunks running); alpha
+   must approach 1 at 700-800 K and the Arrhenius slope must stop moving.
+4. Thermostat independence of D at the production temperatures (an NVE
+   segment from a thermalised state); the NH-vs-Langevin test so far is at
+   300-450 K only.
+5. Sensitivity to the frozen-lid thickness (0.15 vs 0.30 of the slab) and to
+   the interior-region margins (8 A below the plane, 4 A above the wall).
+6. Slab-thickness / finite-size sensitivity of the interior D.
+7. Li-sublattice ordering of the seeds (site-occupancy check that the
+   starting cells are the ordered tetragonal arrangement, as claimed).
+8. z-padding convergence and the periodic-sandwich comparison (above).

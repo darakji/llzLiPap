@@ -88,30 +88,28 @@ $^{2}$TCG CREST, Kolkata, India \\
 % ---------------------------------------------------------------------------
 \section*{Abstract}
 Solid-state batteries are limited at their internal interfaces, and resolving
-that chemistry demands molecular dynamics on cells of several hundred to a few
-thousand atoms --- beyond \emph{ab initio} reach, and therefore the domain of
-machine-learned interatomic potentials. Building such potentials runs into two
-obstacles that are usually absorbed as approximations. Interfacial physics is
-carried by local environments that exist only where there is a free surface, so
-potentials trained on small periodic cells are extrapolating precisely where it
-matters; and plane-wave density functional theory cannot supply a free surface
-at all, requiring a periodic sandwich or a dipole-corrected slab. We present a
-pipeline that removes both. Reference labels are generated with DFT-FE, a
-real-space finite-element Kohn--Sham code whose mixed boundary conditions admit
-a genuinely open surface normal at the scale the potential is deployed on, and
-training structures are acquired by a coverage-driven rule operating in a
-pretrained MACE model's own latent space, so that expensive labels are spent
-where the model is actually deficient. Applied to the Li-metal/Li$_7$La$_3$Zr$_2$O$_{12}$
-interface over six iterations on 420--1378-atom open-boundary cells,
-component-wise force error falls from 121 to 72~meV/\AA\ (RMSE) and 70 to
-45~meV/\AA\ (MAE). Two internal measurements validate the design rather than
-merely the result: the residual error concentrates on the vacuum-facing layer
-at twice the frame mean, exactly where a periodic training cell has nothing to
-teach; and latent-space uncertainty computed before labelling predicts the DFT
-force error subsequently measured on the new structures at $r=0.85$, showing
-the acquisition signal tracks genuine model deficiency rather than geometric
-novelty. Neither component is specific to this chemistry.
-[TODO: closing sentence once the diffusion validation is complete.]
+that chemistry demands molecular dynamics on cells of hundreds to thousands of
+atoms --- beyond \emph{ab initio} reach, and therefore the domain of
+machine-learned interatomic potentials. Two obstacles are usually
+absorbed as approximations. Interfacial physics is
+carried by local environments that exist only at a free surface, so potentials
+trained on small periodic cells extrapolate precisely where it matters; and
+plane-wave density functional theory cannot supply a free surface,
+requiring a periodic sandwich or a dipole-corrected slab. We present a pipeline
+that removes both. Reference labels come from DFT-FE, a real-space
+finite-element Kohn--Sham code whose mixed boundary conditions admit an
+open surface normal at the scale the potential is deployed on, and
+training structures are acquired by a coverage-driven rule in a pretrained MACE
+model's own latent space, so labels are spent where the model is deficient. Applied to the Li-metal/Li$_7$La$_3$Zr$_2$O$_{12}$ interface over
+six iterations on 420--1378-atom open-boundary cells, component-wise force
+error falls from 121 to 72~meV/\AA\ (RMSE) and 70 to 45~meV/\AA\ (MAE). Two
+internal measurements validate the design itself: the
+residual error concentrates on the vacuum-facing layer at twice the frame
+mean, where a periodic training cell has nothing to teach, and
+latent-space uncertainty computed before labelling predicts the DFT force
+error later measured on them at $r=0.85$. Production
+dynamics on six interfaces at 500--800~K place interior lithium transport in
+the regime of the ordered tetragonal phase the cells were built from. Neither component is specific to this chemistry.
 
 \vspace{0.5em}
 \noindent\textbf{Keywords:} machine-learned interatomic potentials, active
@@ -331,19 +329,58 @@ per formula unit, retained deliberately as an extrapolation probe, give a force
 RMSE of 252.6~meV/\AA\ against 72.4~meV/\AA\ in domain.
 
 \subsection{Diffusion-coefficient validation}
+\label{sec:diffusion}
 
-[TODO --- pending multi-seed runs. Preliminary single-trajectory estimates from
-molecular dynamics at 1100~K give in-plane diffusion coefficients of
-$\sim$9--11$\times10^{-7}$~cm$^2$/s in the LLZO region and
-$\sim$4.1$\times10^{-4}$~cm$^2$/s in the Li-metal region, against
-literature-extrapolated values of $\sim$2.3$\times10^{-6}$ and
-$\sim$6$\times10^{-4}$--1.2$\times10^{-3}$~cm$^2$/s --- agreement within a
-factor of 2--3 for both regions. These are single-trajectory numbers without
-error bars and are deliberately NOT presented as a result in this draft. This
-subsection, Fig.~\ref{fig:msd}, and the closing sentence of the Abstract are to
-be written when the independent-seed runs complete.]
+Production molecular dynamics with the final potential was run on six
+interfaces spanning the trained facet and vacancy space --- Li(100)/LLZO(110)
+and an LLZO(110)-terminated cell at 1 vacancy per formula unit,
+Li(111)/LLZO(001) and an LLZO(100)-terminated cell at 0.5, and one cell of each
+termination from the held-out set; 420--1378 atoms --- at 500, 600, 700 and
+800~K with five independent replicas each and 1~ns per replica, 120
+trajectories in all (Methods). Lithium transport is evaluated in the interior
+of the electrolyte slab, at least 8~\AA\ below the measured interface plane and
+4~\AA\ above the fixed substrate, on atoms that never enter the metal. This is
+the quantity that can be compared with bulk data, and it isolates the
+electrolyte from the liquid-like first layer of metal in contact with it.
 
-% ===========================================================================
+At 800~K every interface is diffusive: the log--log slope of the interior
+mean-squared displacement is $\alpha=0.66$--$0.87$, the effective number of
+hops per trajectory\citep{He2018} is 16--216, and the interior diffusion
+coefficient is $1.6$--$4.3\times10^{-7}$~cm$^2$/s on five of the six cells and
+$1.1\times10^{-6}$~cm$^2$/s on the LLZO(001) cell, with replica-to-replica
+standard deviations of 20--50\% (Fig.~\ref{fig:msd}). At 700~K the same
+ordering holds at $2\times10^{-8}$--$4\times10^{-7}$~cm$^2$/s with
+$\alpha=0.24$--$0.78$. At 500 and 600~K the interior lithium is still caged on
+the nanosecond scale ($\alpha\leq0.6$, fewer than ten effective hops on most
+cells), so those points bound $D$ from above rather than measure it. A
+four-temperature Arrhenius fit gives activation energies of 360--680~meV (mean
+480~meV). Extrapolated to 300~K and converted by the Nernst--Einstein relation
+with unit Haven ratio, four of the six cells give $1.6$--$6.7\times10^{-6}$~S/cm
+against the measured $1.6\times10^{-6}$~S/cm and 540~meV of tetragonal
+LLZO\citep{Awaka2009} --- the ordered polymorph from which every cell here was
+built, whose lithium sublattice is fully occupied in the ordered arrangement
+and whose conductivity is three orders of magnitude below that of the cubic
+phase. The LLZO(100) cell at 0.5 vacancies and the held-out LLZO(110) cell
+extrapolate lower (0.05 and 0.002~$\mu$S/cm) because their 500--600~K points
+are the most strongly caged; their 800~K coefficients are not outliers.
+Interfacial exchange is resolvable in the same runs: lithium crossings of the
+interface plane give exchange activation energies of 190--390~meV depending on
+the cell, bracketing the 167~meV reported for the Ga-doped cubic
+interface\citep{burov2026} and the 370~meV measured on
+Li$|$Al-LLZO\citep{Krauskopf2019}.
+
+Three qualifications apply. The interior values are for a fixed lattice at the
+tetragonal density in a slab 15--30~\AA\ thick, not a periodic bulk; the
+replica scatter at 500--600~K is set by too few hops rather than by the
+potential; and 1~ns per replica is the first stage of a longer campaign, so the
+low-temperature points and the fitted activation energies will tighten. Within
+those limits the potential reproduces the transport regime of the polymorph it
+was trained on --- slow, ordered-sublattice conduction with a half-eV barrier
+--- rather than the fast cubic-phase transport of the doped materials most
+simulation work addresses. The unmodified foundation model gives the same slow
+interior transport on the same cells, so the regime is fixed by the tetragonal
+geometry and the fine-tune determines the values within it.
+
 \section{Discussion}
 % ===========================================================================
 
@@ -402,9 +439,11 @@ inferred from it.
 Three further limitations bound the claims made here. The energy channel has
 been flat since the third iteration, so the campaign's gains are in forces.
 The held-out set, while genuinely held out, is largely in-distribution and is
-not an out-of-distribution benchmark. And physical validation through diffusion
-coefficients, with proper statistics over independent seeds, remains
-outstanding and is deliberately not claimed.
+not an out-of-distribution benchmark. And the transport validation is a consistency check against the polymorph
+the cells were built from, not an independent measurement of the interface:
+the extrapolation from 500--800~K to room temperature spans four orders of
+magnitude in $D$, and its uncertainty is set by hop statistics at the two
+lowest temperatures.
 
 % ===========================================================================
 \section{Methods}
@@ -539,18 +578,37 @@ the resolution of the energy metric to $\sim$0.1~meV/atom, while force errors
 reproduce exactly.
 
 \subsection{Diffusion analysis}
-Diffusion coefficients are obtained from in-plane mean-squared displacement
-with multiple time origins and an Einstein-relation fit,
-$D_{2\mathrm{D}}=\mathrm{slope}/4$, over the mobile (unconstrained) lithium
-population. Trajectory coordinates are unwrapped in fractional coordinates
-before any displacement is computed. The surface-normal direction is excluded
-from the fit, being confined by the slab's finite thickness rather than freely
-diffusing, and is used only to assign atoms to the LLZO or Li-metal region;
-that assignment is made relative to the measured interface plane in each frame
-rather than a fixed height, and atoms crossing between regions within a lag
-window are excluded from it. [TODO: fitting window, number of independent
-seeds, temperature set, and the Arrhenius extrapolation used for the literature
-comparison.]
+Production trajectories were run with the NVIDIA ALCHEMI toolkit\citep{alchemi}
+using the cuEquivariance kernels in float32, one or two interfaces per A100
+GPU across 100 nodes of the PARAM Rudra system. Each of the six interfaces was
+simulated at 500, 600, 700 and 800~K with five replicas differing in initial
+velocities, under a Nos\'e--Hoover thermostat (coupling time 100~fs) with a
+2~fs timestep and the open-$z$ boundary conditions of the reference data;
+configurations were recorded every 2~ps. The oxide substrate is fixed as in the
+sampling runs, and in addition the outermost $\max(0.15\,t_{\mathrm{Li}},
+4~\text{\AA})$ of the metal slab, where $t_{\mathrm{Li}}$ is its thickness, is
+held fixed as a stand-in for the bulk electrode: without it the free metal
+surface of a lattice-matched, strained slab disorders the whole slab at every
+temperature studied. Lithium inside the electrolyte is never constrained. The
+thermostat target is scaled by the mobile fraction of atoms so that the mobile
+population is at the nominal temperature.
+
+The first 100~ps of each trajectory are discarded. Interior lithium is defined
+at that time as the atoms at least 8~\AA\ below the interface plane --- the
+98th percentile of La/Zr/O height in each frame --- and at least 4~\AA\ above
+the fixed substrate, restricted to atoms that never enter the metal. Their
+mean-squared displacement is accumulated over all time origins in unwrapped
+fractional coordinates, without centre-of-mass correction, and $D$ is the
+Einstein slope over lags of 10--300~ps divided by 6; the in-plane coefficient
+agrees with it within the replica scatter. The anomalous-diffusion exponent
+$\alpha$ is the log--log slope over the same window, the effective number of
+hops is the total mean-squared displacement divided by the squared hop length
+of 3~\AA\ (ref.~\citenum{He2018}), and the reported uncertainty is the standard
+deviation over the five replicas. Activation energies are from a weighted
+least-squares Arrhenius fit to the four temperatures; conductivities follow
+from the Nernst--Einstein relation with the interior lithium density and a
+Haven ratio of one. Interface crossings are counted against a $\pm1.5$~\AA\
+hysteresis band about the interface plane, following ref.~\citenum{burov2026}.
 
 \subsection*{Code availability}
 [TODO: repository / archive link for training, evaluation, and MD/analysis
@@ -564,9 +622,10 @@ checkpoints.]
 \section*{Acknowledgements}
 % ===========================================================================
 [TODO: funding sources and named acknowledgements.] Model training, inference
-and molecular dynamics were carried out on the KIAC Mahamathi cluster (NVIDIA
-H200 and A5000 GPUs); DFT-FE single-point calculations were performed on the
-OLCF Frontier supercomputer.
+and sampling molecular dynamics were carried out on the KIAC Mahamathi cluster
+(NVIDIA H200 and A5000 GPUs); production molecular dynamics on the PARAM Rudra
+system (NVIDIA A100) of the National Supercomputing Mission; DFT-FE
+single-point calculations on the OLCF Frontier supercomputer.
 
 % ===========================================================================
 \section*{Competing Interests}
@@ -627,6 +686,25 @@ Burov, D., Abakumov, A. \& Aksyonov, D. Machine learning assisted molecular
 dynamics of charge-transfer mechanisms at Li/Ga-doped LLZO interfaces.
 \emph{arXiv preprint} arXiv:2606.07772 (2026).
 
+\bibitem{Awaka2009}
+Awaka, J., Kijima, N., Hayakawa, H. \& Akimoto, J. Synthesis and structure
+analysis of tetragonal Li$_7$La$_3$Zr$_2$O$_{12}$ with the garnet-related type
+structure. \emph{J. Solid State Chem.} \textbf{182}, 2046--2052 (2009).
+
+\bibitem{Krauskopf2019}
+Krauskopf, T. \emph{et al.} Toward a fundamental understanding of the lithium
+metal anode in solid-state batteries --- an electrochemo-mechanical study on
+the garnet-type solid electrolyte Li$_{6.25}$Al$_{0.25}$La$_3$Zr$_2$O$_{12}$.
+\emph{ACS Appl. Mater. Interfaces} \textbf{11}, 14463--14477 (2019).
+
+\bibitem{He2018}
+He, X., Zhu, Y., Epstein, A. \& Mo, Y. Statistical variances of diffusional
+properties from ab initio molecular dynamics simulations. \emph{npj Comput.
+Mater.} \textbf{4}, 18 (2018).
+
+\bibitem{alchemi}
+[TODO: NVIDIA ALCHEMI toolkit and cuEquivariance citation / version.]
+
 \bibitem{vargaumbrich2026}
 Varga-Umbrich, E., Surana, S., Duckworth, P., Tilly, J., Peltre, O. \&
 Weller-Davies, Z. Pretrained model representations as acquisition signals
@@ -663,10 +741,15 @@ error arrays.]
 versus the force error subsequently measured against DFT-FE on the newly
 labelled structures ($r=0.85$).
 
-\paragraph{Figure 5.} \label{fig:msd} [TODO --- pending multi-seed runs.]
-Mean-squared displacement (in-plane) versus time for the Li-metal and LLZO
-regions at 1100~K, with fitted diffusion coefficients and literature
-comparison.
+\paragraph{Figure 5.} \label{fig:msd} Interior lithium transport from
+production molecular dynamics. Arrhenius plot of the diffusion coefficient of
+lithium in the electrolyte interior for the six interfaces at 500--800~K, mean
+and standard deviation over five replicas of 1~ns each, with the per-cell
+Arrhenius fits. Filled symbols are diffusive points ($\alpha\geq0.6$); open
+symbols are caged points that bound $D$ from above. The dashed line is the
+measured conductivity of tetragonal LLZO\citep{Awaka2009} converted to a
+diffusion coefficient with the Nernst--Einstein relation and its 540~meV
+activation energy.
 
 % ===========================================================================
 \section*{Tables}
