@@ -154,7 +154,7 @@ cuEquivariance via the NVIDIA ALCHEMI toolkit, one or two systems per A100,
 outermost max(0.15 t, 4 Å) of the Li slab is frozen as a bulk-electrode
 boundary (without it the strained slab with a free surface is liquid-like at
 every T tried, under any thermostat). Li inside LLZO is never constrained.
-1 ns per replica done; extension to 5 ns running (chain of 500k-step chunks,
+0.95-1.11 ns per replica done (`t_total_ps` in the CSVs is per replica); extension to 5 ns running (chain of 500k-step chunks,
 `results/campaign_midT_lid/chunk3_*` onward).
 
 **Analysis conventions in force** (script `scripts/09_li_kinetics.py`): drop
@@ -178,6 +178,8 @@ and the "1 ns per replica" statements in Results, Methods and the legend. If
 the 5 ns values disagree with the 1 ns ones, report the 5 ns values. The
 owed sanity checks are listed at the end of `SI_notes.md`; none of them is
 done, and the Results text does not claim them.
+
+**Cut on review (2026-09-25):** the sentence claiming the foundation model gives the same interior transport. The only data is a 28-38 ps, three-cell, one-replica test (SI_notes). Do not restore it without the rerun described there.
 
 **Reading of the result, decided:** interior D and Ea match the ordered
 tetragonal polymorph the cells were built from (Awaka 2009), not cubic/doped

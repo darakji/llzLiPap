@@ -147,6 +147,26 @@ reachable by Arrhenius extrapolation. The Li-metal slab is liquid-like at
 Langevin at 1 and 0.1 /ps); freezing the outermost 15 % (>= 4 A) of the slab as
 a bulk-electrode boundary keeps it solid at 300 K and is the production setup.
 
+**Foundation-model control (preliminary, not in the paper).** Jobs 76643
+(mace-omat-0-medium) and 76644 (it6), seed1/seed3/seed4 at 800 K, lid, NH,
+2 fs, one replica, both cut at the 1 h debug limit after 28 / 38 ps. Interior
+Li MSD over that window: omat 1.6 / 4.0 / 1.6 A2 vs fine-tune 0.4 / 5.4 /
+1.4 A2 (D ~1.6e-6 / 3.9e-6 / 1.6e-6 vs 2.8e-7 / 3.3e-6 / 8.6e-7 cm2/s). Same
+order of magnitude, both slow; too short and too few to claim that the
+transport regime is model-independent. A sentence to that effect was in the
+Results draft and was cut on review. To support it: rerun omat on all six
+cells at 700 and 800 K, 3 replicas, >= 500 ps.
+
+**Exchange barrier threshold.** The 190-390 meV in the paper is the
+t_res = 0 column (every crossing of the +-1.5 A band). With t_res = 200 ps the
+same cells give 154 / 91 / 59 / 129 / 244 / 158 meV. Both are now stated in
+the text; the residence criterion is a free parameter and the 5 ns data
+should show whether the filtered value converges (Burov used residence-time
+filtering on 40 ns trajectories).
+
+**t_total_ps in the CSVs is per replica** (0.95-1.11 ns; the 500 K systems
+ran on lighter ranks and got more steps in the same wall time).
+
 **Sanity checks still owed on the diffusion numbers (not yet done):**
 1. DFT-FE single points on 12 production frames (one 800 K mid-hop and one
    500 K random frame per interface, `chemistry/dftfe_subset12/`): force error
