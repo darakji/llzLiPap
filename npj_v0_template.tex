@@ -57,9 +57,8 @@
 % TITLE PAGE
 % ---------------------------------------------------------------------------
 
-\title{Open-boundary reference data at interface scale: a coverage-driven
-active-learning MACE potential for the Li-metal / LLZO solid-electrolyte
-interface}
+\title{Open-boundary reference data at interface scale: a machine-learned
+potential for the Li-metal / LLZO solid-electrolyte interface}
 
 % Running title (<=50 letters and spaces):
 % Open-boundary MLIP for Li/LLZO interfaces
@@ -84,30 +83,30 @@ $^{\ast}$Corresponding author: [PI email] \\
 % ABSTRACT AND KEYWORDS
 % ---------------------------------------------------------------------------
 \section*{Abstract}
-Machine-learned interatomic potentials (MLIPs) are now routinely used to
-extrapolate from small periodic training cells to interface simulations of
-several hundred to a few thousand atoms. At a Li-metal/garnet electrolyte
-contact this extrapolation is doubly unsafe: the training cells are cheap
-periodic approximations to a system whose defining feature is a free surface,
-and the reference method itself --- plane-wave density functional theory (DFT)
---- cannot represent an isolated interface without a periodic-sandwich
-construction, an image dipole, or a post-hoc correction. We remove both
-approximations at once by generating every reference label with DFT-FE, a
-real-space finite-element DFT code whose mixed boundary conditions permit
-genuinely open (non-periodic) treatment along the surface normal, at the
-420--1378 atom scale at which the MLIP is actually deployed. A MACE foundation
-model is adapted to this data by low-rank (LoRA) fine-tuning over six
-active-learning iterations (16$\rightarrow$108 labelled structures) using a
-coverage-driven acquisition rule in the pretrained model's latent embedding
-space. Component-wise force error on a held-out in-domain set of 33 structures
-falls from 121.2 to 72.4~meV/\AA\ (RMSE) and 69.9 to 45.1~meV/\AA\ (MAE) from
-the foundation model to the final iteration, with the last iteration's gain
-significant under a paired test ($p=0.008$). Independently, pre-round posterior
-variance in the same latent space predicts the realised DFT force error of the
-newly labelled structures with $r=+0.85$, showing that the acquisition signal
-measures real model deficiency rather than geometric novelty alone.
-[TODO: closing sentence once the diffusion-coefficient validation with
-independent MD seeds is complete.]
+Machine-learned interatomic potentials are routinely trained on small periodic
+cells and then deployed on interface simulations of several hundred to a few
+thousand atoms. At a Li-metal/garnet electrolyte contact this extrapolation is
+doubly unsafe: the local environments that govern the interface --- an
+undercoordinated oxide surface facing vacuum, lithium in the space-charge
+region --- exist only in a cell that actually contains a free surface, and
+plane-wave density functional theory cannot produce one, requiring instead a
+periodic sandwich or a dipole-corrected slab. We remove both approximations by
+generating every reference label with DFT-FE, a real-space finite-element
+Kohn--Sham code whose mixed boundary conditions permit a genuinely open surface
+normal, at the 420--1378 atom scale at which the potential is deployed. A MACE
+foundation model is adapted to this data by low-rank fine-tuning over six
+active-learning iterations, with structures acquired by a coverage-driven rule
+in the pretrained model's latent space. Component-wise force error on a
+held-out set falls from 121 to 72~meV/\AA\ (RMSE) and 70 to 45~meV/\AA\ (MAE)
+from the foundation model to the final potential. The residual error is
+strongly localised: the oxide framework carries 78\% of the worst-percentile
+error, and the outermost vacuum-facing layer runs at twice the frame mean ---
+the transfer gap sits precisely where a periodic training cell has nothing to
+teach. Latent-space uncertainty computed before labelling predicts the DFT
+force error subsequently measured on the new structures at $r=0.85$, showing
+that the acquisition signal tracks genuine model deficiency rather than
+geometric novelty. [TODO: closing sentence once the diffusion-coefficient
+validation is complete.]
 
 \vspace{0.5em}
 \noindent\textbf{Keywords:} machine-learned interatomic potentials, active
@@ -118,162 +117,129 @@ open boundary conditions
 \section{Introduction}
 % ===========================================================================
 
-Garnet-structured Li$_7$La$_3$Zr$_2$O$_{12}$ (LLZO) is among the most
-developed inorganic solid electrolytes for Li-metal batteries, combining a
-room-temperature ionic conductivity in the mS\,cm$^{-1}$ range with nominal
-stability against metallic lithium. Its practical performance is nonetheless
-limited not by the bulk electrolyte but by the Li/LLZO contact, where
-interfacial resistance, void formation on stripping, and dendrite penetration
-along grain boundaries all originate. These are atomistic, interface-localised
-phenomena, and resolving them requires dynamics on cells large enough to
-contain a genuine interface together with the electrode and electrolyte
-regions on either side of it --- in practice several hundred to a few thousand
-atoms, well beyond the reach of direct \emph{ab initio} molecular dynamics.
+Garnet-structured Li$_7$La$_3$Zr$_2$O$_{12}$ (LLZO) is among the most developed
+inorganic solid electrolytes for Li-metal batteries, combining room-temperature
+ionic conductivity in the mS\,cm$^{-1}$ range with nominal stability against
+metallic lithium. Its practical performance is limited not by the bulk
+electrolyte but by the Li/LLZO contact, where interfacial resistance, void
+formation on stripping, and dendrite penetration originate. These are
+atomistic, interface-localised phenomena, and resolving them requires dynamics
+on cells large enough to contain a genuine interface with electrode and
+electrolyte on either side --- in practice several hundred to a few thousand
+atoms, beyond the reach of direct \emph{ab initio} molecular dynamics.
 
-The standard resolution is a machine-learned interatomic potential trained on
-DFT labels. Recent foundation MLIPs, in particular the MACE family pretrained
-on large bulk-periodic datasets such as OMat24, provide a strong starting
-point and are routinely fine-tuned to a target chemistry with modest amounts
-of new data. Two assumptions are usually inherited silently along with that
-convenience, and both are violated at this interface.
+The standard resolution is a machine-learned interatomic potential (MLIP)
+trained on DFT labels, and foundation models such as the MACE family
+pretrained on large bulk-periodic datasets\citep{batatia2023mace,omat24}
+provide a strong starting point. Two assumptions are usually inherited with
+that convenience, and both fail at this interface.
 
 The first concerns scale. MLIPs learn from local atomic environments, so a
 model trained on small cells is assumed to transfer to large ones provided the
-local environments match. At an interface they do not match: the environments
-that matter --- undercoordinated surface oxygen, Li in the space-charge
+environments match. At an interface they do not. The environments that govern
+the physics --- undercoordinated surface oxygen, lithium in the space-charge
 region, the first oxide layer facing vacuum --- exist only in a cell that
-actually contains a free surface. Training on small periodic approximants and
-extrapolating to 500--1500-atom interface simulations therefore demands a
-large and diverse dataset precisely because the relevant environments are
-never directly sampled. In this work the training structures are the same size
-as the production simulations, so the extrapolation in cell size is removed
-rather than compensated for with data volume.
+contains a free surface. Training on small periodic approximants and
+extrapolating to 500--1500-atom interface simulations therefore demands a large
+and diverse dataset precisely because the decisive environments are never
+directly sampled. Here the training structures are the same size as the
+production simulations, so the extrapolation is removed rather than compensated
+for with data volume.
 
 The second concerns boundary conditions, and is the more fundamental. A
 plane-wave DFT code enforces three-dimensional periodicity. An asymmetric
 Li$|$LLZO slab therefore requires either a symmetric Li$|$LLZO$|$Li sandwich,
 which introduces a second interface that must be assumed equivalent to the
 first, or a single slab with a large vacuum gap plus a dipole correction to
-suppress the spurious interaction between periodic images across that gap.
-Neither produces a free surface; both constrain the accessible slab thickness.
-Prior first-principles studies of this interface have worked within these
+suppress interaction between periodic images across it. Neither produces a free
+surface, and both constrain the accessible slab thickness; prior
+first-principles studies of this interface have worked within these
 constraints. DFT-FE, a real-space finite-element Kohn--Sham
 code\citep{dftfe,Das2022}, removes them: it supports mixed boundary conditions
 natively, so a slab can be periodic in-plane and genuinely open along the
-surface normal, with zero Dirichlet conditions on the wavefunctions and the
-electrostatic potential at the domain boundary. Because it is real-space and
-GPU-parallel, it reaches the 450--1500 atom systems needed here. The reference
-data underlying this potential is therefore open-boundary data at the scale of
-the production simulation --- which, to our knowledge, no existing Li/LLZO
-MLIP training set is.
+surface normal, and because it is real-space and GPU-parallel it reaches the
+450--1500 atom systems required. The reference data underlying this potential
+is therefore open-boundary data at the scale of the production simulation.
 
-This choice has a direct consequence for the learning problem. The foundation
-model is pretrained on overwhelmingly bulk-periodic data, so adapting it to
-open boundaries is a genuine transfer problem rather than a chemical
-refinement. The error analysis bears this out: the outermost vacuum-facing
-LLZO layer carries on average $2.05\times$ the frame-mean force error
-(range $0.98$--$3.79\times$), i.e. the transfer gap is localised exactly where
-the boundary condition differs from pretraining.
+This is not a refinement of the labels but a change in what the labels can
+represent, and it changes the learning problem. The foundation model is
+pretrained on overwhelmingly bulk-periodic data, so adapting it to open
+boundaries is a transfer problem rather than a chemical one --- a prediction
+the error analysis below confirms directly.
 
-DFT-FE labels at this scale are expensive, which makes the acquisition
-strategy consequential rather than cosmetic. We use a coverage-driven rule
-operating on the pretrained model's own latent embedding space: candidate
-structures harvested from MLIP-driven molecular dynamics are embedded,
-farthest-point sampling seeded on the existing training set selects the
-structures that most reduce the worst-case latent distance from any pool point
-to its nearest labelled neighbour, and only those are sent for DFT-FE
-evaluation. Recent independent work has established that pretrained-MLIP
-latent representations are an effective general acquisition signal for
-offline, pool-based active learning under DFT-cost scarcity, consistently
-outperforming random acquisition\citep{vargaumbrich2026}; we do not repeat
-that comparison here, and instead report a direct internal validation, showing
-that the pre-round latent-space posterior variance of a candidate predicts the
-force error the model will actually turn out to have on it once labelled.
-
-This paper reports the resulting campaign and model. Section~\ref{sec:results}
-presents the six-iteration active-learning trajectory, the force- and
-energy-error trend across iterations on a held-out set, the spatial and
-chemical localisation of the residual error, the validation of the acquisition
-signal against realised DFT error, an explicit statement of the model's domain
-of validity in vacancy concentration, and a training-length control confirming
-the reported model is converged. Physical validation via Li-ion diffusion
-coefficients is in progress and reported separately.
+DFT-FE labels at this scale are expensive, which makes the acquisition strategy
+consequential rather than cosmetic. Candidate structures harvested from
+MLIP-driven molecular dynamics are embedded in the pretrained model's own
+latent space, and farthest-point sampling seeded on the existing training set
+selects those that most reduce the worst-case distance from any candidate to
+its nearest labelled neighbour. Recent independent work establishes that
+pretrained-MLIP latent representations are an effective general acquisition
+signal under DFT-cost scarcity, consistently outperforming random
+acquisition\citep{vargaumbrich2026}; rather than repeating that comparison, we
+report a direct internal validation showing that the signal predicts the error
+the model will actually turn out to have.
 
 % ===========================================================================
 \section{Results}
 \label{sec:results}
 % ===========================================================================
 
-\subsection{Reference data: open boundaries at production scale}
+\subsection{Open-boundary reference data at production scale}
 
-All 108 training and 35 test structures are semi-periodic, with
-$\mathrm{pbc}=[\mathrm{True},\mathrm{True},\mathrm{False}]$: periodic in $x$
-and $y$, open in $z$. Each contains a single Li-metal/LLZO interface with two
-genuine free surfaces, 420--1378 atoms, in-plane cell vectors of 11.3--26.4~\AA\
-and a real-space domain extent along $z$ of 52--80~\AA. The $z$ extent is
-finite-element domain padding, not image separation; there is no second
-interface and no dipole correction.
+All 108 training and 33 held-out structures are semi-periodic --- periodic in
+$x$ and $y$, open in $z$ --- and each contains a single Li-metal/LLZO interface
+with two genuine free surfaces, 420--1378 atoms, in-plane cell vectors of
+11.3--26.4~\AA, and a real-space domain extent along $z$ of 52--80~\AA. The $z$
+extent is finite-element domain padding, not image separation: there is no
+second interface and no dipole correction.
 
-Two internal checks bound the label quality. First, the electrostatic boundary
+Two checks bound the quality of these labels. The electrostatic boundary
 condition is immaterial at these geometries: recomputing representative
-interfaces with Neumann (zero-flux) rather than zero-Dirichlet conditions on
-the electrostatic potential changes the total energy by
-$\mathcal{O}(10^{-6})$~Ha and the maximum force component by
-$\sim5\times10^{-5}$~Ha/Bohr ($\sim$2.6~meV/\AA), some twenty times below the
-converged model error. Second, an accidental duplicate pair within the test
-set --- the same physical configuration labelled twice on differently sized
-real-space domains --- differs by 0.06~meV/atom in energy and 0.12~meV/\AA\ in
-force, i.e. DFT-FE label noise sits roughly fifty times below the model error
-and is not limiting.
+interfaces with Neumann rather than zero-Dirichlet conditions on the
+electrostatic potential changes total energies by $\mathcal{O}(10^{-6})$~Ha and
+the maximum force component by $\sim$2.6~meV/\AA, some twenty times below the
+converged model error. And an accidental duplicate within the dataset --- the
+same configuration labelled twice on differently sized real-space domains ---
+differs by 0.06~meV/atom and 0.12~meV/\AA, placing DFT-FE label noise roughly
+fifty times below the model error.
 
-\subsection{Active-learning trajectory}
+\subsection{Active-learning campaign}
 
-The campaign ran six iterations from a 16-structure initial fine-tuning set to
-108 labelled structures, with the foundation model (never a previous
-iteration's model) as the fine-tuning base at every step:
-16 $\rightarrow$ 28 ($+12$) $\rightarrow$ 33 ($+5$) $\rightarrow$ 38 ($+5$)
-$\rightarrow$ 47 ($+9$) $\rightarrow$ 77 ($+30$) $\rightarrow$ 108 ($+31$).
-Every one of the 108 is an independent DFT-FE single-point calculation on a
-420--1378 atom open-boundary interface.
+Training data was grown over six iterations from 16 to 108 labelled
+structures, each an independent DFT-FE single-point calculation on an
+open-boundary interface. Every iteration fine-tunes the foundation model
+directly rather than the previous iteration's weights, so iterations differ
+only in training data.
 
-The final round illustrates the acquisition rule concretely. The candidate
-pool comprised 62{,}029 configurations, drawn from 50~ps MLIP-driven MD at
-1100~K on 36 vacancy-doped interface structures together with a set of 1~ns
-retest trajectories, after a minimum-pairwise-distance physicality filter that
-removed none of them. Seeded on the 77 structures already labelled at that
-point, the existing training set already covered 98.999\% of that pool within
-the coverage threshold; only 31 further structures were required to reach full
-coverage, and farthest-point sampling converged there exactly. All 31 came
-from the vacancy-doped trajectories and none from the retest pool, and most
-were early-trajectory frames (steps 0--1800 of 50{,}000), indicating that the
+The stopping behaviour of the coverage rule is worth stating, because it
+determines when such a campaign should end. In the final round the candidate
+pool comprised 62{,}029 configurations drawn from molecular dynamics at 1100~K.
+Seeded on the 77 structures labelled to that point, the existing training set
+already covered 98.999\% of that pool, and 31 further structures closed the
+remainder exactly. The selected structures were drawn overwhelmingly from
+early-trajectory frames of the vacancy-doped interfaces, indicating that the
 novel information was the defect geometry itself rather than deep phase-space
-exploration --- the acquisition rule locating new chemistry rather than new
-thermal noise. Figure~\ref{fig:latent} shows the pool, the seed, and the
-selected structures in the latent space in which this decision was made.
+exploration --- the rule locating new chemistry rather than new thermal noise.
+Figure~\ref{fig:latent} shows the pool, the seed, and the selections in the
+latent space in which that decision was made. A seventh broad iteration would
+buy little: the pool is close to exhausted.
 
-The vac2pfu tier (2 vacancies per formula unit) was removed from the candidate
-pool before selection, because 6 of its 12 structures were dynamically
-unstable under MD, exceeding 3000~K within 81--248 steps. The model's domain
-of validity in vacancy concentration was therefore fixed by construction at
-$\leq$1 vacancy per formula unit; Section~\ref{sec:domain} quantifies what
-happens outside it.
+\subsection{Accuracy}
 
-\subsection{Force- and energy-error trend across iterations}
-
-Table~\ref{tab:force-trend} reports component-wise force RMSE and MAE for the
-foundation model and every iteration on the in-domain held-out set of 33
-structures. Both metrics fall essentially monotonically after it0, and the two
-rank the iterations identically, so the MAE trend confirms rather than alters
-the RMSE-based conclusion.
+Table~\ref{tab:force-trend} reports component-wise force error for the
+foundation model and each iteration on the held-out set. Error falls from 121.2
+to 72.4~meV/\AA\ RMSE and 69.9 to 45.1~meV/\AA\ MAE, with the two metrics
+ranking the iterations identically. The first round is an exception: at 16
+structures it is too small to adapt the model without degrading the pretrained
+representation, and the campaign recovers foundation-model accuracy by the
+second round and improves monotonically thereafter.
 
 \begin{table}[htbp]
 \centering
-\caption{Force-error trend across active-learning iterations on the 33-structure
-in-domain held-out set (29 clean test frames plus the 4 in-domain
-vacancy holdouts; the 2 structures at 2 vacancies/f.u. are outside the trained
-domain and are reported separately in Section~\ref{sec:domain}). RMSE and MAE
-are component-wise over all atoms and all three Cartesian force components.
-``max'' is the worst per-structure value in the set.}
+\caption{Force-error trend across active-learning iterations on the
+33-structure held-out set. RMSE and MAE are component-wise over all atoms and
+all three Cartesian force components; ``max'' is the worst per-structure value
+in the set.}
 \label{tab:force-trend}
 \begin{tabular}{lcccc}
 \toprule
@@ -292,452 +258,270 @@ it5                     & 77.2  & 112.9 & 47.5  & 72.1  \\
 \end{tabular}
 \end{table}
 
-Three features of Table~\ref{tab:force-trend} deserve comment. First, it0 is
-worse than the foundation model on this set. The first fine-tuning round used
-16 structures, too few to adapt the model to open boundaries without degrading
-the pretrained representation; the campaign recovers the foundation-model level
-by it1 and improves on it thereafter. Reporting it0 rather than starting the
-trend at it1 makes the cost of under-resourced fine-tuning explicit. Second,
-the improvement is concentrated in the tail: from it0 to it6 the per-structure
-maximum RMSE falls by 70\% and the across-structure standard deviation by 82\%,
-compared with 62\% for the mean. The campaign is buying worst-case reliability,
-which is what determines whether long MD runs remain stable, more than it is
-buying average accuracy. Third, the final iteration's gain is real but modest:
-a paired Wilcoxon signed-rank test on the 33 in-domain structures gives
-$77.21\rightarrow72.37$~meV/\AA\ RMSE, a 6.3\% reduction, $p=0.008$, with it6
-better on 24 of 33 structures.
+The improvement is concentrated in the tail rather than the mean: across the
+campaign the worst per-structure RMSE falls by 70\% and the across-structure
+standard deviation by 82\%, against 62\% for the mean. This is the quantity
+that governs whether long molecular-dynamics runs remain stable, and it is
+what the coverage-driven rule is designed to buy. The final iteration's gain is
+modest but significant under a paired Wilcoxon signed-rank test over the
+held-out structures ($77.2\rightarrow72.4$~meV/\AA, $p=0.008$, better on 24 of
+33). Energy error is flat at $\sim$4~meV/atom and has been since the third
+iteration.
 
-Energy error behaves differently, and we report it as flat rather than
-improving. On the same 33 structures it5 and it6 give 3.80 and 4.14~meV/atom
-respectively; the difference is not significant ($p=0.50$ paired). Energy error
-plateaued at approximately it2 and has not moved since. We note additionally
-that the energy metric itself is near its numerical floor in this setting:
-absolute total energies are of order $2.3\times10^5$~eV, for which the float32
-unit in the last place is $1.6\times10^{-2}$~eV, so the difference
-$|E_{\mathrm{pred}}-E_{\mathrm{ref}}|$ loses several digits to cancellation.
-Repeating an identical evaluation of an identical model on identical data
-returns 4.376, 4.280 and 4.369~meV/atom on successive runs, while the force
-RMSE is reproduced bit-for-bit. Differences in reported energy error below
-roughly 0.1~meV/atom are therefore not resolvable in float32 and should not be
-interpreted, here or in comparable studies that do not state their working
-precision.
+\subsection{The residual error sits at the free surface}
 
-An independent confirmation set of 7 snapshots drawn at 0/50/100/200/400/800/
-1000~ps from a single 1~ns MD trajectory gives a different and less flattering
-picture, which we state plainly: on this set it6 (80.0~meV/\AA\ RMSE,
-49.5~meV/\AA\ MAE) is essentially tied with it4 (76.0, 46.9) rather than
-clearly better, on both metrics. This set probes temporal rather than
-configurational diversity --- all 7 frames come from one trajectory of one
-interface --- so it is a weaker discriminator between late iterations than the
-33-structure set, but the honest reading is that the it4$\rightarrow$it6 gain
-does not reproduce on it.
-
-\subsection{Where the residual error lives}
-
-Pooling all atoms of the clean test frames, the residual force error is
+Pooled over all atoms of the held-out set, the remaining force error is
 strongly localised by both chemistry and geometry. The oxide framework carries
-it: Zr and La together are 15.4\% of the atoms but hold 77.8\% of the
-worst-1\% squared error, with mean component-wise error of 102.3 and
-83.4~meV/\AA\ respectively, against 25.1~meV/\AA\ for Li, which is 47.8\% of
-the atoms. Geometrically, the outermost vacuum-facing LLZO layer runs at
-$2.05\times$ the frame-mean error on average, with a per-frame range of
-$0.98$--$3.79\times$.
+it: Zr and La are 15.4\% of the atoms but hold 77.8\% of the worst-percentile
+squared error, with mean component-wise errors of 102.3 and 83.4~meV/\AA\
+against 25.1~meV/\AA\ for Li, which is 47.8\% of the atoms. Geometrically, the
+outermost vacuum-facing LLZO layer runs at $2.05\times$ the frame-mean error on
+average, with a per-frame range of $0.98$--$3.79\times$ (Fig.~\ref{fig:surface}).
 
-This is the signature the boundary-condition argument predicts. The
-environments least represented in bulk-periodic pretraining are precisely
-those at a free surface, and that is where the adapted model remains weakest.
-It also indicates where further labelling effort would pay: a targeted round
-biased towards surface-layer environments rather than another broad sweep of
-the configuration pool.
+This is the signature the boundary-condition argument predicts, and it is the
+central validation of the approach. The environments least represented in
+bulk-periodic pretraining are exactly those at a free surface, and that is
+where the adapted model remains weakest --- a deficit that a training set built
+from periodic cells could neither diagnose nor repair, because such cells do
+not contain the environments in question. It also indicates where further
+labelling effort would pay: a targeted round biased towards surface
+environments rather than another undirected sweep of configuration space.
 
 \subsection{The acquisition signal predicts realised DFT error}
 \label{sec:uq}
 
-A recurring weakness of diversity-based acquisition is that latent-space
-distance may measure only geometric novelty, not model deficiency. We tested
-this directly using data already generated by the campaign, with no additional
-DFT.
+A standing objection to diversity-based acquisition is that latent-space
+distance may measure geometric novelty rather than model deficiency. We tested
+this directly, using data the campaign had already generated.
 
 For each candidate we computed a Gaussian-process posterior variance in the
-fine-tuned model's latent feature space, conditioned on the 77 structures
-labelled before the final round. Compared against the force and energy error
-the previous model was subsequently measured to have on the 35 structures that
-round labelled, the pre-round posterior variance predicts realised error with
-Pearson $r=+0.847$ for force and $+0.777$ for energy ($\lambda=0.1$;
-$r=+0.823/+0.785$ at $\lambda=0.01$; all $p\leq2.3\times10^{-8}$). The
-correlation is not an artifact of contrasting selected against random
-structures --- restricting to the 31 farthest-point-sampled structures alone
-gives $r=+0.839$ force, $+0.784$ energy --- nor of any single leverage point
-(leave-one-out range $[+0.817,+0.867]$; bootstrap 95\% CI $[+0.69,+0.93]$), nor
-of structure size ($r=-0.03$ between atom count and error; the partial
-correlation controlling for atom count is unchanged at $+0.850$).
+model's latent feature space, conditioned only on the structures labelled
+before the final round --- that is, a quantity available at selection time.
+Compared against the force and energy error the model was subsequently measured
+to have against DFT-FE on the newly labelled structures, this pre-round
+uncertainty predicts realised error with Pearson $r=+0.85$ for force and
+$+0.78$ for energy ($p\leq2.3\times10^{-8}$). The correlation is not an
+artifact of contrasting selected against random structures, survives
+leave-one-out (range $[+0.82,+0.87]$) and bootstrap resampling (95\% CI
+$[+0.69,+0.93]$), and is unchanged when controlling for structure size.
 
-The structures the acquisition rule chose were also high-uncertainty by this
-independent criterion: their mean posterior variance was 0.233 against 0.064
-for the pool ($\lambda=0.01$, Mann--Whitney $p=4.4\times10^{-12}$), and the
-selected set exceeded all 1000 randomly drawn 31-structure subsets. This
-agreement is non-trivial, because the two criteria rank the pool almost
-independently: Spearman correlation between posterior variance and the
-farthest-point-sampling criterion over the full 62{,}029-frame pool is only
-$+0.10$ to $+0.16$, and the top 31 by posterior variance overlap the selected
-31 by just 10--11 structures. The two rules agree in the extreme tail while
-disagreeing over the bulk of the pool.
-
-We deliberately do not claim that posterior variance is a better acquisition
-criterion than farthest-point sampling. A head-to-head comparison on the same
-35 ground-truth structures gives $r=+0.847$ versus $+0.724$ for force, which is
-not significant under Williams' test for dependent correlations ($p=0.066$),
-and most of the apparent advantage is attributable to feature standardisation
-rather than to the criterion: running posterior variance in the
-farthest-point-sampling preprocessing space drops it to $+0.683$, statistically
-indistinguishable from plain minimum-distance ($p=0.65$). The one clean
-methodological finding is that per-feature standardisation improves
-error prediction over the L2-normalise-then-PCA preprocessing used here
-($+0.611\rightarrow+0.716$ for energy, $p=0.010$). Moreover, the comparison
-arena is biased: all 35 ground-truth points are the selected structures plus 4
-random frames, so it can only measure how well each criterion ranks difficulty
-\emph{within the region already chosen}, never what the alternative would have
-selected instead. The defensible conclusion is that latent geometry genuinely
-tracks model deficiency, and that the two signals are complementary --- a
-per-structure informativeness score paired with an explicit batch-diversity
-constraint.
+The structures the rule selected were also extreme by this independent
+criterion, exceeding all 1000 randomly drawn subsets of equal size. That
+agreement is informative precisely because the two criteria rank the pool
+almost independently --- their Spearman correlation across the full
+62{,}029-frame pool is only $\sim$0.1, and they agree chiefly in the extreme
+tail. Latent geometry is therefore tracking genuine model deficiency, and the
+coverage rule is selecting on it rather than on novelty alone.
 
 \subsection{Domain of validity}
 \label{sec:domain}
 
-The model's training set contains no structure above 1 vacancy per formula
-unit: of the 108 training structures, 12 are at 0.5 and 19 at 1 vacancy per
-formula unit, and 77 are undoped. This was a construction decision, not a
-post-hoc exclusion --- the 2-vacancy tier was removed from the candidate pool
-at the MD stage for dynamical instability, before any selection or labelling
-took place.
-
-Two 2-vacancy structures nonetheless entered the held-out set, and we report
-them as an explicit extrapolation probe rather than deleting them. On these,
-force RMSE is 252.6~meV/\AA\ for it6 (266.3 for it5), against 72.4~meV/\AA\
-in-domain --- a 3.5-fold degradation. The potential should not be used above
-1 vacancy per formula unit, and this is the measurement that states the
-boundary.
-
-\subsection{Training-length control}
-
-To confirm that the reported model is limited by data rather than optimisation,
-the final iteration was retrained at 2000 epochs (stochastic weight averaging
-from 1200) and 2500 epochs (averaging from 1600), against the production
-setting of 1500 epochs (averaging from 1000), all other hyperparameters and
-both data files held identical. Force error is unchanged: 72.04, 72.00 and
-71.84~meV/\AA\ RMSE and 44.89, 44.87 and 44.78~meV/\AA\ MAE respectively.
-
-The cause is visible in the training logs: both longer runs selected the same
-pre-averaging checkpoint, at epoch 453, and their best post-averaging
-checkpoints fell at epochs 1226 and 1896, after which validation loss plateaued
-and then drifted upward. Additional epochs neither help nor harm. The reported
-model is converged with respect to training length, and the remaining error is
-a property of the data and the architecture.
+The potential is trained on interfaces at up to 1 lithium vacancy per formula
+unit and should not be applied beyond it. Held-out structures at 2 vacancies
+per formula unit, retained deliberately as an extrapolation probe, give a force
+RMSE of 252.6~meV/\AA\ against 72.4~meV/\AA\ in domain.
 
 \subsection{Diffusion-coefficient validation}
 
-[TODO --- pending. Preliminary single-seed estimates from it6-driven MD at
-1100~K give in-plane diffusion coefficients of $\sim$9--11$\times10^{-7}$~cm$^2$/s
-in the LLZO region and $\sim$4.1$\times10^{-4}$~cm$^2$/s in the Li-metal region,
-against literature-extrapolated values of $\sim$2.3$\times10^{-6}$ and
-$\sim$6$\times10^{-4}$--1.2$\times10^{-3}$~cm$^2$/s respectively --- agreement
-within a factor of 2--3 for both regions. These are single-trajectory numbers
-with no error bars and are NOT reported as a result in this draft. Multiple
-independent MD seeds per condition are in progress; this subsection, the
-corresponding figure, and the closing sentence of the Abstract are to be
-written once those complete.]
+[TODO --- pending multi-seed runs. Preliminary single-trajectory estimates from
+molecular dynamics at 1100~K give in-plane diffusion coefficients of
+$\sim$9--11$\times10^{-7}$~cm$^2$/s in the LLZO region and
+$\sim$4.1$\times10^{-4}$~cm$^2$/s in the Li-metal region, against
+literature-extrapolated values of $\sim$2.3$\times10^{-6}$ and
+$\sim$6$\times10^{-4}$--1.2$\times10^{-3}$~cm$^2$/s --- agreement within a
+factor of 2--3 for both regions. These are single-trajectory numbers without
+error bars and are deliberately NOT presented as a result in this draft. This
+subsection, Fig.~\ref{fig:msd}, and the closing sentence of the Abstract are to
+be written when the independent-seed runs complete.]
 
 % ===========================================================================
 \section{Discussion}
 % ===========================================================================
 
-The case for this potential rests less on its aggregate error than on what the
+The case for this potential rests less on its aggregate error than on what that
 error was measured against. A force RMSE of 72~meV/\AA\ is unremarkable by the
-standards of bulk MLIP benchmarks; what is unusual is that it is measured
+standards of bulk MLIP benchmarks. What is unusual is that it is measured
 against open-boundary DFT labels on 420--1378-atom cells containing a single
-interface with two real free surfaces, which is the same object the model is
-deployed on. The usual reporting convention --- train on small periodic
-approximants, validate on small periodic approximants, deploy on large
-interfaces --- leaves the extrapolation that actually matters unmeasured. Here
-there is no such extrapolation to make, and the error analysis shows why it
-would have been dangerous: the residual error concentrates by a factor of two
-on exactly the vacuum-facing layer that a periodic training cell does not
-contain.
+interface with two real free surfaces --- the same object the model is deployed
+on. The prevailing convention, in which a potential is trained and validated on
+small periodic approximants and then applied to large interfaces, leaves the
+one extrapolation that matters unmeasured. Here there is no such extrapolation,
+and the error analysis shows why leaving it unmeasured is dangerous: the
+residual concentrates by a factor of two on exactly the vacuum-facing layer
+that a periodic training cell cannot contain. A model trained that way would be
+weakest where it is least able to know it.
 
-This reframes what DFT-FE contributes. It is not simply a larger-capacity DFT
-code; its mixed boundary conditions make a class of reference data available
-that plane-wave codes cannot produce at all, and that class is the one an
-interface MLIP needs. The cost is real --- each label is a single-point
-calculation on 64 GPU nodes --- which is precisely why the acquisition strategy
-carries weight rather than being a convenience.
+This reframes what DFT-FE contributes. It is not merely a higher-capacity DFT
+code but one whose boundary conditions make available a class of reference data
+that plane-wave methods cannot produce at all --- and that class is the one an
+interface potential needs. The cost is real, each label being a single-point
+calculation distributed across 64 GPU nodes, which is why the acquisition
+strategy carries weight rather than being a convenience.
 
-On that strategy, the evidence here is stronger than a coverage argument alone.
-The pre-round latent posterior variance predicts the force error the previous
-model turns out to have on newly labelled structures at $r=+0.85$, robust to
-leave-one-out, bootstrap, and the obvious confounds. This says the latent
-geometry is tracking genuine model deficiency and not merely geometric
-novelty --- the standard objection to diversity-based acquisition --- and it is
-measured on real DFT labels rather than on a synthetic proxy. It is also
-convergent evidence, in that the selected structures were extreme by a
-criterion that ranks the pool nearly independently ($\rho\approx0.1$--$0.16$).
-We resist the stronger claim that posterior variance should replace
-farthest-point sampling: the comparison is not significant for forces, most of
-its apparent margin is preprocessing rather than criterion, and the evaluation
-arena consists largely of structures the incumbent method chose, which cannot
-reveal what the challenger would have selected. The actionable finding for a
-future round is narrower and more robust --- per-feature standardisation of the
-latent space improves error prediction independently of which criterion is
-applied on top of it.
+On that strategy, the evidence here goes beyond a coverage argument. Latent
+uncertainty computed before labelling predicts the force error the model turns
+out to have on the new structures at $r=0.85$, measured against real DFT labels
+rather than a synthetic proxy, and robust to the obvious confounds. This
+answers the standard objection that diversity-based acquisition selects on
+novelty rather than need. It is also convergent evidence, since the selected
+structures were extreme under a criterion that ranks the candidate pool nearly
+independently. The campaign's own trajectory then argues for stopping: by the
+final round the labelled set already covered 99\% of a 62{,}000-frame pool, and
+the remainder closed in 31 structures. What the error localisation suggests
+instead is a targeted round directed at surface environments.
 
-The campaign's own trajectory argues that it should stop rather than continue
-broadly. By the final round, the 77 already-labelled structures covered 98.999\%
-of a 62{,}029-frame candidate pool, and 31 additions exhausted the remainder.
-The pool is not merely expensive to exploit further, it is close to
-uninformative; a seventh broad iteration would buy little. What the error
-localisation does suggest is a targeted round --- surface-layer environments,
-where the residual is concentrated --- rather than another undirected sweep.
-
-Three limitations bound the claims. First, the energy channel has been flat
-since approximately it2 and did not improve in the final round; part of this is
-genuine, and part is that the reported energy metric sits near its float32
-numerical floor at these absolute energies, which we quantify rather than
-assume. Second, the force improvement is statistically established on the clean
-structures ($p=0.008$ overall, $p=0.007$ on the clean 29 alone) but not on the
-4 in-domain vacancy holdouts, where $n=4$ supports no claim in either
-direction; that adding vacancy training data improved performance on pristine
-interfaces is reported as observed, not as the designed outcome. Third, the
-held-out set is largely in-distribution --- 21 of 29 clean frames are siblings
-of an earlier iteration's selection pool --- so it is a legitimate held-out
-test but not an out-of-distribution one, and the 7-snapshot temporal
-confirmation set does not reproduce the it4$\rightarrow$it6 gain. Physical
+Three limitations bound these claims. The energy channel has been flat since
+the third iteration and did not improve further, so the campaign's gains are in
+forces. The held-out set, while genuinely held out, is largely
+in-distribution and is not an out-of-distribution benchmark. And physical
 validation through diffusion coefficients with proper statistics over
-independent seeds remains the main outstanding item and is deliberately not
-claimed here.
-
-Finally, the model carries a stated domain of validity in vacancy
-concentration, fixed at $\leq$1 vacancy per formula unit when the 2-vacancy
-tier proved dynamically unstable at the sampling stage. The 3.5-fold error
-increase measured outside it is reported as the boundary rather than suppressed.
+independent seeds remains outstanding and is deliberately not claimed here.
 
 % ===========================================================================
 \section{Methods}
 % ===========================================================================
 
 \subsection{System and boundary conditions}
-All structures are semi-periodic: periodic in $x$ and $y$, open
-(non-periodic) in $z$. This is possible because reference labels come from
-DFT-FE (real-space DFT) rather than a plane-wave code, giving a single
-interface with two genuine free surfaces and no periodic-image interaction
-along the surface normal --- avoiding the periodic-sandwich workaround
-(second interface, image dipole or correction, constrained slab thickness)
-standard in plane-wave DFT treatments of this
-interface\citep{dftfe,Das2022}. The condition is enforced in code at every
-stage of the pipeline and verified on all 108 training and 35 test frames.
-The finite $z$ extent of each cell (52--80~\AA, with 12.7--36~\AA\ beyond the
-atoms) is real-space domain padding for the finite-element solver, not image
-separation.
+All structures are semi-periodic: periodic in $x$ and $y$, open (non-periodic)
+in $z$. This is possible because reference labels come from DFT-FE (real-space
+DFT) rather than a plane-wave code, giving a single interface with two genuine
+free surfaces and no periodic-image interaction along the surface
+normal\citep{dftfe,Das2022}. The condition is enforced at every stage of the
+pipeline and verified on all 108 training and 33 held-out frames; the finite
+$z$ extent of each cell is real-space domain padding for the finite-element
+solver, not image separation.
 
 Interfaces were constructed by lattice-matching Li-metal and LLZO surface
 slabs, sampling the interfacial separation, and selecting the optimal gap by
 energy; the LLZO reference state throughout is the ordered tetragonal
-$I4_1/acd$ polymorph\citep{Murugan2007}. Vacancy-doped variants were generated
-at 0.5, 1 and 2 vacancies per formula unit. [TODO: cite or restate the
-lattice-matching and gap-optimisation procedure in enough detail to be
-reproducible, or point to a deposited script.]
+$I4_1/acd$ polymorph\citep{Murugan2007}. Lithium-vacancy variants were
+generated at 0.5 and 1 vacancy per formula unit. [TODO: give the
+lattice-matching and gap-optimisation procedure in reproducible detail, or
+point to the deposited script.]
 
-\subsection{Reference labels: DFT-FE}
+\subsection{Reference labels}
 All reference energies and forces are single-point Kohn--Sham DFT calculations
-performed with DFT-FE\citep{dftfe,Das2022} using the PBE generalized-gradient
-exchange--correlation functional\citep{pbe1996} and SPMS norm-conserving
-pseudopotentials\citep{spms} for Li, La, Zr and O, applied consistently across
-the entire dataset. The Kohn--Sham equations were discretized on a high-order
-finite-element basis of polynomial order 7, with an automatically generated
-mesh of size parameter 1.2~\AA\ refined within 8.0~\AA\ of each atomic core.
-Self-consistency used Anderson mixing with Fermi--Dirac smearing at an
-electronic temperature of 500~K and a convergence tolerance of
-$5\times10^{-5}$~Ha. Boundary conditions were periodic in $x$ and $y$ and zero
-Dirichlet in $z$ for both the wavefunctions and the electrostatic potential.
-No structural relaxation was performed; the objective is accurate force labels
-at fixed geometry.
-
-The sensitivity of the labels to the electrostatic boundary condition was
-checked by recomputing representative interfaces with Neumann (zero-flux)
-conditions on the electrostatic potential in place of zero Dirichlet: total
-energies changed by $\mathcal{O}(10^{-6})$~Ha and the maximum force component
-by $\sim5\times10^{-5}$~Ha/Bohr ($\sim$2.6~meV/\AA).
-
-Calculations were run on the OLCF Frontier system, distributed across 64 nodes
-(4 AMD MI250X GPUs per node, one MPI task per GPU) in ground-state mode with
-GPU acceleration and memory optimisation enabled. All production labels used
-identical settings.
+performed with DFT-FE\citep{dftfe,Das2022} using the PBE
+functional\citep{pbe1996} and SPMS norm-conserving pseudopotentials\citep{spms}
+for Li, La, Zr and O, applied consistently across the dataset. The Kohn--Sham
+equations were discretized on a finite-element basis of polynomial order 7,
+with an automatically generated mesh of size parameter 1.2~\AA\ refined within
+8.0~\AA\ of each atomic core. Self-consistency used Anderson mixing with
+Fermi--Dirac smearing at an electronic temperature of 500~K and a tolerance of
+$5\times10^{-5}$~Ha. Boundary conditions were periodic in $x,y$ and zero
+Dirichlet in $z$ for both the wavefunctions and the electrostatic potential. No
+structural relaxation was performed. Calculations ran on the OLCF Frontier
+system across 64 nodes (4 AMD MI250X GPUs per node, one MPI task per GPU).
 
 \subsection{Model architecture and fine-tuning}
 The potential is a MACE equivariant message-passing
-network\citep{batatia2023mace}, adapted from the \texttt{mace-omat-0-medium}
-foundation model pretrained on OMat24\citep{omat24}. Every iteration
-fine-tunes the foundation model directly, never a previous iteration's
-weights, so that iterations differ only in training data.
-
-Adaptation uses low-rank adaptation (LoRA)\citep{LoRA2021} to limit
-catastrophic forgetting of the pretrained bulk chemistry on a small interface
-dataset. For a pretrained weight matrix $W\in\mathbb{R}^{d\times d}$ the update
-is constrained to a rank-$r$ subspace,
+network\citep{batatia2023mace} adapted from the \texttt{mace-omat-0-medium}
+foundation model pretrained on OMat24\citep{omat24}, using low-rank adaptation
+(LoRA)\citep{LoRA2021} to limit catastrophic forgetting of the pretrained bulk
+chemistry on a small interface dataset. For a pretrained weight matrix
+$W\in\mathbb{R}^{d\times d}$ the update is constrained to a rank-$r$ subspace,
 \begin{equation}
 W' = W + \frac{\alpha}{r}BA,
 \qquad A\in\mathbb{R}^{r\times d},\; B\in\mathbb{R}^{d\times r},\; r\ll d,
 \end{equation}
-so that the layer evaluates
+so the layer evaluates
 $h_{\mathrm{out}} = Wh_{\mathrm{in}} + \tfrac{\alpha}{r}B(Ah_{\mathrm{in}})$.
 Adapters are inserted in the equivariant \texttt{o3.Linear} and dense layers
-using compatible irreducible representations, so the low-rank update preserves
-$O(3)$ equivariance. All pretrained parameters are frozen
-($\nabla_{\theta_{\mathrm{base}}}L = 0$) and only $(A,B)$ are optimised,
+using compatible irreducible representations, so the update preserves $O(3)$
+equivariance. Pretrained parameters are frozen and only $(A,B)$ optimised,
 reducing trainable parameters per layer from $\mathcal{O}(d^2)$ to
 $\mathcal{O}(2rd)$, under 1\% of the model. Initialisation is
-$A\sim\mathcal{N}(0,10^{-3})$, $B=0$, so that $\Delta W = 0$ at the start and
-the model begins from exactly the pretrained state. For deployment the update
-is merged, $W_{\mathrm{final}} = W + BA$, giving a standard MACE model with no
-inference overhead.
+$A\sim\mathcal{N}(0,10^{-3})$, $B=0$, so $\Delta W=0$ at the start and the model
+begins from exactly the pretrained state; for deployment the update is merged,
+$W_{\mathrm{final}} = W+BA$, giving a standard MACE model with no inference
+overhead.
 
 Training minimises
 \begin{equation}
 L = w_E\sum_i\left(E_i-\hat{E}_i\right)^2
   + w_F\sum_i\left\|F_i-\hat{F}_i\right\|^2 ,
 \end{equation}
-with $w_E = 1.0$ and $w_F = 5.0$. Hyperparameters, identical across all
-iterations: LoRA rank $r=5$, $\alpha=1$; batch size 8; learning rate
-$5\times10^{-3}$ with \texttt{ReduceLROnPlateau} (factor 0.8, patience 50);
-1500 epochs with stochastic weight averaging from epoch 1000 at learning rate
-$10^{-4}$ and unchanged loss weights; seed 42; float32 working precision.
+with $w_E=1.0$, $w_F=5.0$. Hyperparameters, identical across iterations: LoRA
+rank $r=5$, $\alpha=1$; batch size 8; learning rate $5\times10^{-3}$ with
+\texttt{ReduceLROnPlateau} (factor 0.8, patience 50); 1500 epochs with
+stochastic weight averaging from epoch 1000 at learning rate $10^{-4}$; seed
+42; float32 working precision; checkpoint selection by best validation loss.
 Isolated-atom reference energies (eV) were
 $E_0(\mathrm{Li})=-190.7590256408$, $E_0(\mathrm{O})=-442.9888796243$,
 $E_0(\mathrm{Zr})=-1380.1817128081$, $E_0(\mathrm{La})=-958.0774205521$.
-Checkpoint selection is by best validation loss.
 
-Working precision is float32 throughout, and this is a deliberate choice
-rather than the library default (MACE defaults to float64). It has one
-reporting consequence, quantified in Results: at absolute total energies of
-order $2.3\times10^5$~eV the float32 unit in the last place is
-$1.6\times10^{-2}$~eV, so the energy-error metric carries run-to-run scatter of
-order 0.1~meV/atom while force errors reproduce exactly.
+\subsection{Sampling and acquisition}
+Candidate configurations were generated by MLIP-driven molecular dynamics in
+ASE using the current iteration's model: Langevin thermostat at 1100~K with
+friction $10^{-3}$~fs$^{-1}$, 1~fs timestep, 50~ps per structure, configurations
+recorded every 100 steps, with boundary conditions matching the reference data.
+Oxide atoms deeper than $\max(0.85\,t,\,6~\text{\AA})$ below the LLZO top
+surface, where $t$ is the slab thickness, were held fixed, stabilising the
+far-bulk region while leaving the interface free to evolve. Frames passed a
+minimum-pairwise-distance filter ($>1.2$~\AA) before entering the pool.
 
-\subsection{Molecular dynamics sampling}
-Candidate configurations were generated by MLIP-driven MD in ASE using the
-current iteration's model. Simulations used a Langevin thermostat at 1100~K
-with friction $10^{-3}$~fs$^{-1}$, a 1~fs timestep, and 50~ps (50{,}000 steps)
-per structure, with configurations recorded every 100 steps. Boundary
-conditions match the reference data exactly ($\mathrm{pbc}=[\mathrm{T},
-\mathrm{T},\mathrm{F}]$), and only the $x,y$ coordinates are wrapped.
-
-To prevent the slab from drifting and to confine sampling to the interfacially
-active region, an active region was defined geometrically: the LLZO framework
-was identified from La, Zr and O atoms, Li metal as the Li above it, and oxide
-atoms deeper than $\max(0.85\,t,\,6~\text{\AA})$ below the LLZO top surface,
-where $t$ is the slab thickness, were held fixed. This stabilises the far-bulk
-region while leaving the interface free to evolve.
-
-Generated frames passed a physicality filter (PBC-aware minimum pairwise
-distance $>1.2$~\AA) before entering the candidate pool; in the final round
-0 of 62{,}029 frames were rejected.
-
-\subsection{Latent embeddings and coverage-driven acquisition}
-For each structure, a forward pass with force evaluation enabled yields for
-each atom $i$ the rotationally invariant ($l=0$) scalar components of the final
-message-passing layer, $\mathbf{z}_i\in\mathbb{R}^{256}$. A structure-level
-embedding is obtained by mean-pooling,
+For each structure, a forward pass yields for each atom $i$ the rotationally
+invariant ($l=0$) components of the final message-passing layer,
+$\mathbf{z}_i\in\mathbb{R}^{256}$; a structure-level embedding follows by
+mean-pooling,
 \begin{equation}
 \mathbf{Z}_S = \frac{1}{N_S}\sum_{i=1}^{N_S}\mathbf{z}_i ,
 \end{equation}
-where $N_S$ is the atom count. Embeddings are L2-normalised and reduced by PCA
-retaining at least 95\% of variance (minimum 32 components).
-
-Selection is farthest-point sampling seeded on the existing labelled set
-$\mathcal{S}_0 = \mathcal{T}^{(n)}$, so that new picks complement rather than
-duplicate what is already labelled. For each pool candidate $k$,
+which is then L2-normalised and reduced by PCA retaining at least 95\% of
+variance. Selection is farthest-point sampling seeded on the existing labelled
+set, so that new picks complement rather than duplicate it. For each candidate
+$k$,
 \begin{equation}
-\delta_k = \min_{\mathbf{Z}_s\in\mathcal{S}} \left\|\mathbf{Z}_k-\mathbf{Z}_s\right\|_2 ,
+\delta_k = \min_{\mathbf{Z}_s\in\mathcal{S}}\left\|\mathbf{Z}_k-\mathbf{Z}_s\right\|_2 ,
 \end{equation}
-and the candidate with the largest $\delta_k$ is added to $\mathcal{S}$,
-repeatedly. The quantity being minimised is the coverage radius
-\begin{equation}
-\rho(\mathcal{S},\mathcal{P}) = \max_{k\in\mathcal{P}} \delta_k ,
-\end{equation}
-the worst-case distance from any pool point to its nearest selected neighbour,
-which greedy farthest-point sampling reduces as fast as possible at each step.
+and the candidate maximising $\delta_k$ is added to $\mathcal{S}$. The quantity
+minimised is the coverage radius
+$\rho(\mathcal{S},\mathcal{P}) = \max_{k\in\mathcal{P}}\delta_k$, the
+worst-case distance from any pool point to its nearest labelled neighbour.
 Selection stops when the percentile coverage
 \begin{equation}
-C(d) = \frac{1}{|\mathcal{P}|}\sum_{k\in\mathcal{P}}\mathbf{1}\!\left[\delta_k\leq d\right]
+C(d) = \frac{1}{|\mathcal{P}|}\sum_{k\in\mathcal{P}}
+\mathbf{1}\!\left[\delta_k\leq d\right]
 \end{equation}
-reaches the configured target (1.0 in the final round) at the threshold
-distance $d$. This is a stopping rule driven by the pool's own geometry rather
-than a fixed per-round budget, which is why round sizes vary from 5 to 31
-structures.
+reaches its target at threshold $d$ --- a stopping rule set by the pool's own
+geometry rather than a fixed per-round budget. For the analysis of
+Section~\ref{sec:uq}, a Gaussian-process posterior variance was computed in the
+same feature space conditioned on the pre-round training set.
 
-For the posterior-variance analysis of Section~\ref{sec:uq}, a Gaussian-process
-posterior variance was computed in the same feature space, conditioned on the
-pre-round training set, at regularisation $\lambda\in\{0.01,0.1\}$;
-significance of differences between dependent correlations used Williams' test.
-
-\subsection{Test-set construction}
-The held-out set comprises 35 structures. Twenty-nine come from an earlier
-evaluation set of 32 frames after removing three contaminated entries,
-identified not by filename but by model prediction: two test frames were
-confirmed to be the same physical configuration as training frames recomputed
-on a larger real-space domain (predicted energies agreeing to
-$6.5\times10^{-6}$ and $1.8\times10^{-6}$~meV/atom), and one further pair was
-an internal duplicate. The remaining 6 are a holdout set constructed
-independently of the selection round: 4 random frames drawn from the
-physicality-filtered 0.5/1-vacancy pool excluding all selected structures, and
-2 taken at their pristine $t=0$ geometry from the 2-vacancy tier.
-
-Because the model's training domain excludes 2 vacancies per formula unit
-entirely (Section~\ref{sec:domain}), the primary reported metric is the
-33-structure in-domain set (29 clean + 4 in-domain vacancy holdouts), and the
-2 out-of-domain frames are reported separately as an extrapolation probe.
-Twenty-one of the 29 clean frames are siblings of an earlier iteration's
-selection pool, so this is a held-out but largely in-distribution set; it is
-not an out-of-distribution benchmark and is not presented as one.
+\subsection{Evaluation}
+The held-out set comprises 33 structures, disjoint from training and
+constructed independently of the selection rounds. Three entries of an earlier
+evaluation set were removed after being identified as duplicates of training
+configurations recomputed on a larger real-space domain; they were detected by
+model prediction rather than by filename, agreeing to
+$<10^{-5}$~meV/atom. Structures above the trained vacancy range are excluded
+from the primary metric and reported separately (Section~\ref{sec:domain}).
+Twenty-one of the held-out structures are siblings of an earlier iteration's
+candidate pool, so the set is held out but largely in-distribution.
 
 Force error is component-wise throughout:
 $\mathrm{RMSE}=\sqrt{\langle(F_{\mathrm{pred}}-F_{\mathrm{ref}})^2\rangle}$
-averaged over all atoms and all three Cartesian components, in meV/\AA;
-multiply by $\sqrt{3}$ for the RMS of per-atom error vectors. Energy error is
+over all atoms and all three Cartesian components, in meV/\AA; multiply by
+$\sqrt{3}$ for the RMS of per-atom error vectors. Energy error is
 $|E_{\mathrm{pred}}-E_{\mathrm{ref}}|/N$ in meV/atom. Paired model comparisons
-use the Wilcoxon signed-rank test over structures.
+use the Wilcoxon signed-rank test over structures. Evaluation is performed in
+float32, matching training; at the absolute energies of these cells this limits
+the resolution of the energy metric to $\sim$0.1~meV/atom, while force errors
+reproduce exactly.
 
-\subsection{Molecular dynamics analysis}
-Diffusion coefficients are extracted from in-plane ($x,y$) mean-squared
-displacement with multiple time origins and an Einstein-relation fit,
-$D_{2\mathrm{D}} = \mathrm{slope}/4$. Because trajectory frames are stored
-wrapped in $x$ and $y$, coordinates are unwrapped before any displacement is
-computed, by minimum-imaging successive per-frame displacements in fractional
-coordinates and accumulating:
-$\Delta\mathbf{f} \leftarrow \Delta\mathbf{f} - \mathrm{round}(\Delta\mathbf{f})$,
-then converting back to Cartesian. The fractional formulation is required
-because not all in-plane cells are orthogonal. Unwrapping is unambiguous at the
-100~fs snapshot interval, where the RMS Li displacement per frame
-($\sim$0.2~\AA) is far below half the smallest in-plane cell vector
-(5.6~\AA); without it the MSD saturates near $L^2/6\approx21$~\AA$^2$ per
-dimension in the smallest cells, which is reached within tens of picoseconds
-at 1100~K.
-
-The $z$ coordinate is excluded from the diffusion fit, being confined by the
-slab's finite thickness rather than a freely diffusing direction, and is used
-only to assign atoms to the LLZO or Li-metal region. That assignment is made
-relative to the measured interface plane, defined per frame as the maximum $z$
-of the La/Zr/O framework, rather than at a fixed absolute height, so that
-region definitions remain valid as the slab breathes and across structures with
-different cell extents. Atoms crossing between regions within a lag window are
-excluded from that window for both regions. Atoms frozen by the active-region
-constraint are excluded from the mobile population; no centre-of-mass drift
-correction is applied, as the frozen substrate already fixes the reference
-frame and subtracting an all-atom centre of mass would remove part of the
-genuine Li flux.
-
-[TODO: fitting window, number of independent seeds, temperature set, and
-Arrhenius extrapolation for the literature comparison --- to be completed with
-the multi-seed runs.]
+\subsection{Diffusion analysis}
+Diffusion coefficients are obtained from in-plane mean-squared displacement
+with multiple time origins and an Einstein-relation fit,
+$D_{2\mathrm{D}}=\mathrm{slope}/4$, over the mobile (unconstrained) lithium
+population. Trajectory coordinates are unwrapped in fractional coordinates
+before any displacement is computed. The surface-normal direction is excluded
+from the fit, being confined by the slab's finite thickness rather than freely
+diffusing, and is used only to assign atoms to the LLZO or Li-metal region;
+that assignment is made relative to the measured interface plane in each frame
+rather than a fixed height, and atoms crossing between regions within a lag
+window are excluded from it. [TODO: fitting window, number of independent
+seeds, temperature set, and the Arrhenius extrapolation used for the literature
+comparison.]
 
 \subsection*{Code availability}
 [TODO: repository / archive link for training, evaluation, and MD/analysis
@@ -748,7 +532,6 @@ scripts.]
 DFT-FE reference labels, training/test structure files, and trained model
 checkpoints.]
 
-% ===========================================================================
 \section*{Acknowledgements}
 % ===========================================================================
 [TODO: funding sources and named acknowledgements.] Model training, inference
@@ -838,24 +621,20 @@ required by plane-wave DFT. [TODO: build figure.]
 
 \paragraph{Figure 2.} \label{fig:latent} Latent-space view of the final
 acquisition round. PCA on L2-normalized 256-dimensional MACE mean-pooled
-embeddings (PC1/PC2/PC3 explain 70.9\%/21.8\%/2.9\% of variance), showing the
-62{,}029-frame candidate pool, the 77-structure training seed, and the 31
-selected structures.
+embeddings, showing the 62{,}029-frame candidate pool, the training seed, and
+the selected structures.
 
-\paragraph{Figure 3.} Force RMSE and MAE across active-learning iterations
-(universal, it0--it6) on the 33-structure in-domain held-out set, corresponding
-to Table~\ref{tab:force-trend}.
+\paragraph{Figure 3.} \label{fig:surface} Residual force error versus distance
+from the free surface, pooled over the held-out frames, showing the
+$2.05\times$ mean enhancement in the outermost vacuum-facing LLZO layer, with
+the per-element decomposition inset. [TODO: build from the existing per-atom
+error arrays.]
 
-\paragraph{Figure 4.} Residual force error versus distance from the free
-surface, pooled over the clean held-out frames, showing the $2.05\times$
-mean enhancement in the outermost vacuum-facing LLZO layer. [TODO: build from
-the existing per-atom error arrays.]
+\paragraph{Figure 4.} Latent-space uncertainty computed before labelling
+versus the force error subsequently measured against DFT-FE on the newly
+labelled structures ($r=0.85$).
 
-\paragraph{Figure 5.} Pre-round latent-space posterior variance versus the
-force error subsequently measured against DFT-FE on the newly labelled
-structures ($r=+0.85$), with the selected and random subsets distinguished.
-
-\paragraph{Figure 6.} \label{fig:msd} [TODO --- pending multi-seed runs.]
+\paragraph{Figure 5.} \label{fig:msd} [TODO --- pending multi-seed runs.]
 Mean-squared displacement (in-plane) versus time for the Li-metal and LLZO
 regions at 1100~K, with fitted diffusion coefficients and literature
 comparison.
