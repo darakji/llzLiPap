@@ -57,21 +57,11 @@
 % TITLE PAGE
 % ---------------------------------------------------------------------------
 
-% [DECISION NEEDED] Two candidate titles. The active one below leads with the
-% open-boundary DFT-FE reference data, matching how the manuscript is now
-% argued (see Results: the free-surface error localisation is the result that
-% validates the premise). The Overleaf alternative, kept here, leads with the
-% active learning instead. Whichever is chosen, the Introduction and Abstract
-% emphasis should match it -- do not leave these out of step.
-%
-% Alternative (from Overleaf, 2026-09-24):
-% \title{Latent-Space Driven Active Learning of MLIPs for Li--LLZO Interfaces}
-%
-\title{Open-boundary reference data at interface scale: a machine-learned
-potential for the Li-metal / LLZO solid-electrolyte interface}
+\title{Latent-space-driven active learning with DFT-FE for solid-state battery
+interfaces: application to Li-metal/LLZO}
 
 % Running title (<=50 letters and spaces):
-% Open-boundary MLIP for Li/LLZO interfaces
+% Active learning for solid-state battery interfaces
 
 \author{
 Mehul Darak$^{1}$ \and
@@ -97,101 +87,106 @@ $^{2}$TCG CREST, Kolkata, India \\
 % ABSTRACT AND KEYWORDS
 % ---------------------------------------------------------------------------
 \section*{Abstract}
-Machine-learned interatomic potentials are routinely trained on small periodic
-cells and then deployed on interface simulations of several hundred to a few
-thousand atoms. At a Li-metal/garnet electrolyte contact this extrapolation is
-doubly unsafe: the local environments that govern the interface --- an
-undercoordinated oxide surface facing vacuum, lithium in the space-charge
-region --- exist only in a cell that actually contains a free surface, and
-plane-wave density functional theory cannot produce one, requiring instead a
-periodic sandwich or a dipole-corrected slab. We remove both approximations by
-generating every reference label with DFT-FE, a real-space finite-element
-Kohn--Sham code whose mixed boundary conditions permit a genuinely open surface
-normal, at the 420--1378 atom scale at which the potential is deployed. A MACE
-foundation model is adapted to this data by low-rank fine-tuning over six
-active-learning iterations, with structures acquired by a coverage-driven rule
-in the pretrained model's latent space. Component-wise force error on a
-held-out set falls from 121 to 72~meV/\AA\ (RMSE) and 70 to 45~meV/\AA\ (MAE)
-from the foundation model to the final potential. The residual error is
-strongly localised: the oxide framework carries 78\% of the worst-percentile
-error, and the outermost vacuum-facing layer runs at twice the frame mean ---
-the transfer gap sits precisely where a periodic training cell has nothing to
-teach. Latent-space uncertainty computed before labelling predicts the DFT
+Solid-state batteries are limited at their internal interfaces, and resolving
+that chemistry demands molecular dynamics on cells of several hundred to a few
+thousand atoms --- beyond \emph{ab initio} reach, and therefore the domain of
+machine-learned interatomic potentials. Building such potentials runs into two
+obstacles that are usually absorbed as approximations. Interfacial physics is
+carried by local environments that exist only where there is a free surface, so
+potentials trained on small periodic cells are extrapolating precisely where it
+matters; and plane-wave density functional theory cannot supply a free surface
+at all, requiring a periodic sandwich or a dipole-corrected slab. We present a
+pipeline that removes both. Reference labels are generated with DFT-FE, a
+real-space finite-element Kohn--Sham code whose mixed boundary conditions admit
+a genuinely open surface normal at the scale the potential is deployed on, and
+training structures are acquired by a coverage-driven rule operating in a
+pretrained MACE model's own latent space, so that expensive labels are spent
+where the model is actually deficient. Applied to the Li-metal/Li$_7$La$_3$Zr$_2$O$_{12}$
+interface over six iterations on 420--1378-atom open-boundary cells,
+component-wise force error falls from 121 to 72~meV/\AA\ (RMSE) and 70 to
+45~meV/\AA\ (MAE). Two internal measurements validate the design rather than
+merely the result: the residual error concentrates on the vacuum-facing layer
+at twice the frame mean, exactly where a periodic training cell has nothing to
+teach; and latent-space uncertainty computed before labelling predicts the DFT
 force error subsequently measured on the new structures at $r=0.85$, showing
-that the acquisition signal tracks genuine model deficiency rather than
-geometric novelty. [TODO: closing sentence once the diffusion-coefficient
-validation is complete.]
+the acquisition signal tracks genuine model deficiency rather than geometric
+novelty. Neither component is specific to this chemistry.
+[TODO: closing sentence once the diffusion validation is complete.]
 
 \vspace{0.5em}
 \noindent\textbf{Keywords:} machine-learned interatomic potentials, active
-learning, MACE, solid electrolyte interface, LLZO, Li-metal battery, DFT-FE,
-open boundary conditions
+learning, latent-space acquisition, MACE, DFT-FE, open boundary conditions,
+solid-state batteries, solid electrolyte interface, LLZO
 
 % ===========================================================================
 \section{Introduction}
 % ===========================================================================
 
-Garnet-structured Li$_7$La$_3$Zr$_2$O$_{12}$ (LLZO) is among the most developed
-inorganic solid electrolytes for Li-metal batteries, combining room-temperature
-ionic conductivity in the mS\,cm$^{-1}$ range with nominal stability against
-metallic lithium. Its practical performance is limited not by the bulk
-electrolyte but by the Li/LLZO contact, where interfacial resistance, void
-formation on stripping, and dendrite penetration originate. These are
-atomistic, interface-localised phenomena, and resolving them requires dynamics
-on cells large enough to contain a genuine interface with electrode and
-electrolyte on either side --- in practice several hundred to a few thousand
-atoms, beyond the reach of direct \emph{ab initio} molecular dynamics.
-
-The standard resolution is a machine-learned interatomic potential (MLIP)
-trained on DFT labels, and foundation models such as the MACE family
-pretrained on large bulk-periodic datasets\citep{batatia2023mace,omat24}
-provide a strong starting point. Two assumptions are usually inherited with
-that convenience, and both fail at this interface.
+The performance of a solid-state battery is decided at its internal interfaces.
+Interfacial resistance, void formation on stripping, and dendrite penetration
+all originate at the contact between electrode and solid electrolyte rather
+than in either bulk phase, and all are atomistic in origin. Resolving them
+requires molecular dynamics on cells large enough to hold a genuine interface
+with both phases on either side --- several hundred to a few thousand atoms,
+beyond the reach of direct \emph{ab initio} molecular dynamics and therefore
+the province of machine-learned interatomic potentials (MLIPs). Foundation
+MLIPs such as the MACE family, pretrained on large bulk-periodic
+datasets\citep{batatia2023mace,omat24}, make this practical: a modest amount of
+system-specific data suffices to adapt one. Two assumptions are usually
+inherited along with that convenience, and at an interface both fail.
 
 The first concerns scale. MLIPs learn from local atomic environments, so a
 model trained on small cells is assumed to transfer to large ones provided the
 environments match. At an interface they do not. The environments that govern
-the physics --- undercoordinated surface oxygen, lithium in the space-charge
-region, the first oxide layer facing vacuum --- exist only in a cell that
+the physics --- undercoordinated surface oxygen, cations in the space-charge
+region, the first electrolyte layer facing vacuum --- exist only in a cell that
 contains a free surface. Training on small periodic approximants and
 extrapolating to 500--1500-atom interface simulations therefore demands a large
 and diverse dataset precisely because the decisive environments are never
-directly sampled. Here the training structures are the same size as the
-production simulations, so the extrapolation is removed rather than compensated
-for with data volume.
+directly sampled, and the extrapolation is never measured because the
+validation set is built the same way as the training set.
 
-The second concerns boundary conditions, and is the more fundamental. A
-plane-wave DFT code enforces three-dimensional periodicity. An asymmetric
-Li$|$LLZO slab therefore requires either a symmetric Li$|$LLZO$|$Li sandwich,
-which introduces a second interface that must be assumed equivalent to the
-first, or a single slab with a large vacuum gap plus a dipole correction to
-suppress interaction between periodic images across it. Neither produces a free
-surface, and both constrain the accessible slab thickness; prior
-first-principles studies of this interface have worked within these
-constraints. DFT-FE, a real-space finite-element Kohn--Sham
-code\citep{dftfe,Das2022}, removes them: it supports mixed boundary conditions
-natively, so a slab can be periodic in-plane and genuinely open along the
-surface normal, and because it is real-space and GPU-parallel it reaches the
-450--1500 atom systems required. The reference data underlying this potential
-is therefore open-boundary data at the scale of the production simulation.
+The second concerns the reference method, and is the more fundamental. A
+plane-wave DFT code enforces three-dimensional periodicity, so an asymmetric
+electrode$|$electrolyte slab requires either a symmetric sandwich, which
+introduces a second interface that must be assumed equivalent to the first, or
+a single slab with a large vacuum gap plus a dipole correction to suppress
+interaction between periodic images across it. Neither produces a free surface,
+and both constrain the accessible slab thickness. The approximation is not a
+matter of convergence: the object one wants to label cannot be represented.
+DFT-FE, a real-space finite-element Kohn--Sham code\citep{dftfe,Das2022},
+removes it. Mixed boundary conditions are native, so a slab can be periodic
+in-plane and genuinely open along the surface normal, and because the method is
+real-space and GPU-parallel it reaches the 450--1500 atom systems at which
+these interfaces must be modelled. Reference labels can then be generated on
+exactly the object the potential will be deployed on.
 
-This is not a refinement of the labels but a change in what the labels can
-represent, and it changes the learning problem. The foundation model is
-pretrained on overwhelmingly bulk-periodic data, so adapting it to open
-boundaries is a transfer problem rather than a chemical one --- a prediction
-the error analysis below confirms directly.
-
-DFT-FE labels at this scale are expensive, which makes the acquisition strategy
-consequential rather than cosmetic. Candidate structures harvested from
-MLIP-driven molecular dynamics are embedded in the pretrained model's own
-latent space, and farthest-point sampling seeded on the existing training set
+That capability comes at a price --- each label is a single-point calculation
+distributed across dozens of GPU nodes --- which makes the third element of the
+pipeline consequential rather than cosmetic. Rather than labelling
+configurations at random or on a fixed budget, candidate structures harvested
+from MLIP-driven molecular dynamics are embedded in the pretrained model's own
+latent space, and farthest-point sampling seeded on the already-labelled set
 selects those that most reduce the worst-case distance from any candidate to
-its nearest labelled neighbour. Recent independent work establishes that
-pretrained-MLIP latent representations are an effective general acquisition
-signal under DFT-cost scarcity, consistently outperforming random
-acquisition\citep{vargaumbrich2026}; rather than repeating that comparison, we
-report a direct internal validation showing that the signal predicts the error
-the model will actually turn out to have.
+its nearest labelled neighbour. Selection stops when the pool is covered rather
+than when a quota is met, so the campaign's length is set by the data. Recent
+independent work establishes that pretrained-MLIP latent representations are an
+effective general acquisition signal under DFT-cost scarcity, consistently
+outperforming random acquisition\citep{vargaumbrich2026}; rather than repeating
+that comparison, we report a direct internal validation showing that the signal
+predicts the error the model turns out to have.
+
+This paper presents that pipeline --- open-boundary DFT-FE labels at deployment
+scale, acquired by latent-space coverage --- and demonstrates it on the
+Li-metal/Li$_7$La$_3$Zr$_2$O$_{12}$ (LLZO) interface, the most developed
+Li-metal/oxide-electrolyte system and the one for which comparison data exists.
+Beyond the resulting potential's accuracy, two measurements bear on the design
+itself and are reported in Section~\ref{sec:results}: where the residual error
+sits, which tests the boundary-condition argument directly, and whether the
+acquisition signal predicts real DFT error, which tests whether latent
+diversity is measuring model deficiency or merely geometric novelty. Neither
+the labelling strategy nor the acquisition rule is specific to this chemistry,
+and Section~\ref{sec:general} states what is required to apply them elsewhere.
 
 % ===========================================================================
 \section{Results}
@@ -352,44 +347,64 @@ be written when the independent-seed runs complete.]
 \section{Discussion}
 % ===========================================================================
 
-The case for this potential rests less on its aggregate error than on what that
-error was measured against. A force RMSE of 72~meV/\AA\ is unremarkable by the
-standards of bulk MLIP benchmarks. What is unusual is that it is measured
-against open-boundary DFT labels on 420--1378-atom cells containing a single
-interface with two real free surfaces --- the same object the model is deployed
-on. The prevailing convention, in which a potential is trained and validated on
-small periodic approximants and then applied to large interfaces, leaves the
-one extrapolation that matters unmeasured. Here there is no such extrapolation,
-and the error analysis shows why leaving it unmeasured is dangerous: the
-residual concentrates by a factor of two on exactly the vacuum-facing layer
-that a periodic training cell cannot contain. A model trained that way would be
-weakest where it is least able to know it.
+The two components of this pipeline address complementary failures, and the
+results bear on each separately.
 
-This reframes what DFT-FE contributes. It is not merely a higher-capacity DFT
-code but one whose boundary conditions make available a class of reference data
-that plane-wave methods cannot produce at all --- and that class is the one an
-interface potential needs. The cost is real, each label being a single-point
-calculation distributed across 64 GPU nodes, which is why the acquisition
-strategy carries weight rather than being a convenience.
+Open-boundary labelling is validated by where the error ends up. A force RMSE
+of 72~meV/\AA\ is unremarkable by the standards of bulk MLIP benchmarks; what
+is unusual is that it is measured against labels computed on 420--1378-atom
+cells containing a single interface with two real free surfaces --- the same
+object the potential is deployed on. The prevailing convention, in which a
+potential is trained and validated on small periodic approximants and then
+applied to large interfaces, leaves the one extrapolation that matters
+unmeasured. Here there is none to make, and the error analysis shows why
+leaving it unmeasured is dangerous: the residual concentrates by a factor of
+two on exactly the vacuum-facing layer that a periodic training cell cannot
+contain. A potential trained the conventional way would be weakest precisely
+where its own validation set is blind. This also reframes what DFT-FE
+contributes --- not a higher-capacity DFT code, but one whose boundary
+conditions make available a class of reference data that plane-wave methods
+cannot produce at all, which is the class an interface potential needs.
 
-On that strategy, the evidence here goes beyond a coverage argument. Latent
-uncertainty computed before labelling predicts the force error the model turns
-out to have on the new structures at $r=0.85$, measured against real DFT labels
-rather than a synthetic proxy, and robust to the obvious confounds. This
-answers the standard objection that diversity-based acquisition selects on
-novelty rather than need. It is also convergent evidence, since the selected
-structures were extreme under a criterion that ranks the candidate pool nearly
-independently. The campaign's own trajectory then argues for stopping: by the
-final round the labelled set already covered 99\% of a 62{,}000-frame pool, and
-the remainder closed in 31 structures. What the error localisation suggests
-instead is a targeted round directed at surface environments.
+Latent-space acquisition is validated by whether it predicts need rather than
+novelty. Uncertainty computed in the model's own latent space before labelling
+predicts the force error the model turns out to have on the new structures at
+$r=0.85$, measured against real DFT labels rather than a synthetic proxy and
+robust to the obvious confounds. This answers the standard objection to
+diversity-based selection directly, and it is convergent evidence, since the
+selected structures were extreme under a criterion that ranks the candidate
+pool nearly independently. The coverage formulation also supplies something a
+fixed-budget scheme cannot: a stopping criterion. By the final round the
+labelled set already covered 99\% of a 62{,}000-frame pool and the remainder
+closed in 31 structures, so a further broad iteration would buy little. What
+the error localisation suggests instead is a targeted round aimed at surface
+environments --- the campaign diagnosing its own next move.
 
-Three limitations bound these claims. The energy channel has been flat since
-the third iteration and did not improve further, so the campaign's gains are in
-forces. The held-out set, while genuinely held out, is largely
-in-distribution and is not an out-of-distribution benchmark. And physical
-validation through diffusion coefficients with proper statistics over
-independent seeds remains outstanding and is deliberately not claimed here.
+\subsection*{Transfer to other systems}
+\label{sec:general}
+
+Neither component depends on this chemistry. The requirements are that a
+pretrained equivariant MLIP exist for the constituent elements, to drive the
+sampling MD and to supply the latent space in which acquisition operates; that
+the interface admit a slab geometry whose free surface is the physically
+meaningful boundary, which is the generic situation for a solid--solid contact
+in a battery; and that reference labels be affordable at that geometry, which
+is what the real-space method supplies. Systems that meet these conditions
+include the other oxide and sulfide electrolytes in contact with lithium, and
+cathode$|$electrolyte contacts, where the same interfacial-resistance questions
+arise and the same periodic-sandwich compromise is currently made. The
+principal scope limitation of the present work is that it demonstrates the
+pipeline on one interface family; whether the accuracy attained here is
+representative, or whether the number of iterations required scales with
+chemical complexity, is not established by a single campaign and should not be
+inferred from it.
+
+Three further limitations bound the claims made here. The energy channel has
+been flat since the third iteration, so the campaign's gains are in forces.
+The held-out set, while genuinely held out, is largely in-distribution and is
+not an out-of-distribution benchmark. And physical validation through diffusion
+coefficients, with proper statistics over independent seeds, remains
+outstanding and is deliberately not claimed.
 
 % ===========================================================================
 \section{Methods}
