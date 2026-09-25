@@ -342,10 +342,14 @@ on it rather than on novelty alone.
 
 \begin{figure}[htbp]
 \centering
-\figslot{figs/fig_uq.pdf}{Figure 4 --- to build from \texttt{it6\_final/uq\_fps\_validation/}}
-\caption{\textbf{Pre-labelling uncertainty predicts realised DFT error.} Latent-space posterior variance computed before the final round versus the
-force error subsequently measured against DFT-FE on the newly labelled
-structures ($r=0.85$).}
+\figslot{figs/fig_uq.pdf}{Figure 4}
+\caption{\textbf{Pre-labelling uncertainty predicts realised DFT error.} Gaussian-process posterior variance computed in the latent space of the
+it5 model, conditioned only on the structures labelled before the final round,
+against the error subsequently measured against DFT-FE on the 35 newly
+labelled structures. \textbf{a}, Force RMSE ($r=+0.85$). \textbf{b}, Energy
+MAE ($r=+0.78$). Circles are the 31 farthest-point-sampling selections,
+triangles the four held-out labels; the line is a least-squares fit to all 35
+points.}
 \label{fig:uq}
 \end{figure}
 
@@ -458,7 +462,7 @@ the six activation energies did not move between 1 and 3~ns, the
 low-temperature points will tighten further. Within those limits the potential
 reproduces the transport regime of the polymorph it was trained on --- slow,
 ordered-sublattice conduction with a half-eV barrier --- rather than the fast
-transport of the vacancy-rich and cubic materials most simulation work
+transport of the vacancy-rich and cubic materials\citep{Murugan2007} most simulation work
 addresses.
 
 \begin{figure}[htbp]
@@ -842,11 +846,6 @@ a first principles investigation. \emph{Chem. Mater.} \textbf{25}, 3048--3055
 (2013).
 % VERIFY: the 0.43 eV AIMD value for the undoped tetragonal composition.
 
-\bibitem{Murugan2007}
-Murugan, R., Thangadurai, V. \& Weppner, W. Fast lithium ion conduction in
-garnet-type Li$_7$La$_3$Zr$_2$O$_{12}$. \emph{Angew. Chem. Int. Ed.}
-\textbf{46}, 7778--7781 (2007).
-
 \bibitem{burov2026}
 Burov, A. S., Abakumov, A. M. \& Aksyonov, D. A. Machine learning assisted
 molecular dynamics of charge-transfer mechanisms at Li/Ga-doped
@@ -858,6 +857,11 @@ Krauskopf, T. \emph{et al.} Toward a fundamental understanding of the lithium
 metal anode in solid-state batteries --- an electrochemo-mechanical study on
 the garnet-type solid electrolyte Li$_{6.25}$Al$_{0.25}$La$_3$Zr$_2$O$_{12}$.
 \emph{ACS Appl. Mater. Interfaces} \textbf{11}, 14463--14477 (2019).
+
+\bibitem{Murugan2007}
+Murugan, R., Thangadurai, V. \& Weppner, W. Fast lithium ion conduction in
+garnet-type Li$_7$La$_3$Zr$_2$O$_{12}$. \emph{Angew. Chem. Int. Ed.}
+\textbf{46}, 7778--7781 (2007).
 
 \bibitem{Canepa2018}
 Canepa, P. \emph{et al.} Particle morphology and lithium segregation to surfaces

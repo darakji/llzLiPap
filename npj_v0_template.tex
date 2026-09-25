@@ -307,7 +307,7 @@ before the final round --- that is, a quantity available at selection time.
 Compared against the force and energy error the model was subsequently measured
 to have against DFT-FE on the newly labelled structures, this pre-round
 uncertainty predicts realised error with Pearson $r=+0.85$ for force and
-$+0.78$ for energy ($p\leq2.3\times10^{-8}$). The correlation is not an
+$+0.78$ for energy ($p\leq2.3\times10^{-8}$; Fig.~\ref{fig:uq}). The correlation is not an
 artifact of contrasting selected against random structures, survives
 leave-one-out (range $[+0.82,+0.87]$) and bootstrap resampling (95\% CI
 $[+0.69,+0.93]$), and is unchanged when controlling for structure size.
@@ -404,7 +404,7 @@ low-temperature points will tighten further, although the 800~K values and
 five of the six activation energies did not move between 1 and 3~ns. Within
 those limits the potential reproduces the transport regime of the polymorph it
 was trained on --- slow, ordered-sublattice conduction with a half-eV barrier
---- rather than the fast cubic-phase transport of the doped materials most
+--- rather than the fast cubic-phase transport\citep{Murugan2007} of the doped materials most
 simulation work addresses.
 
 \section{Discussion}
@@ -501,7 +501,7 @@ solver, not image separation.
 Interfaces were constructed by lattice-matching Li-metal and LLZO surface
 slabs, sampling the interfacial separation, and selecting the optimal gap by
 energy; the LLZO reference state throughout is the ordered tetragonal
-$I4_1/acd$ polymorph\citep{Murugan2007}. Lithium-vacancy variants were
+$I4_1/acd$ polymorph\citep{Awaka2009}. Lithium-vacancy variants were
 generated at 0.5 and 1 vacancy per formula unit. [TODO: give the
 lattice-matching and gap-optimisation procedure in reproducible detail, or
 point to the deposited script.]
@@ -788,9 +788,13 @@ $2.05\times$ mean enhancement in the outermost vacuum-facing LLZO layer, with
 the per-element decomposition inset. [TODO: build from the existing per-atom
 error arrays.]
 
-\paragraph{Figure 4.} Latent-space uncertainty computed before labelling
-versus the force error subsequently measured against DFT-FE on the newly
-labelled structures ($r=0.85$).
+\paragraph{Figure 4.} \label{fig:uq} Pre-labelling uncertainty predicts
+realised DFT error. Gaussian-process posterior variance computed in the latent
+space of the it5 model, conditioned only on the structures labelled before the
+final round, against the error subsequently measured against DFT-FE on the 35
+newly labelled structures. (a) Force RMSE ($r=+0.85$). (b) Energy MAE
+($r=+0.78$). Circles are the 31 farthest-point-sampling selections, triangles
+the four held-out labels; the line is a least-squares fit to all 35 points.
 
 \paragraph{Figure 5.} \label{fig:msd} Interior lithium transport from
 production molecular dynamics. (a) Mean-squared displacement of interior
