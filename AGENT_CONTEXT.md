@@ -124,7 +124,7 @@ Compiles clean under tectonic.
 | Results — Residual error at the free surface | Done |
 | Results — Acquisition signal predicts DFT error | Done |
 | Results — Domain of validity | Done |
-| Results — Diffusion-coefficient validation | Written from the 3 ns campaign (500–800 K, 5 replicas, 6 interfaces); includes the vacancy-filling composition finding. Numbers to refresh at 5 ns |
+| Results — Diffusion-coefficient validation | Written from the 3 ns campaign (500–800 K, 5 replicas, 6 interfaces); includes the vacancy-filling composition finding. Numbers to refresh at 5 ns. Fig. 5 is now two panels: (a) MSD curves (data/msd_curves_3ns_rep0.npz), (b) Arrhenius |
 | Discussion | Done, incl. "Transfer to other systems" |
 | Methods — all subsections | Done except interface-construction detail |
 | References | 14 entries, 6 are `[TODO]` placeholders (ALCHEMI added) |

@@ -203,6 +203,25 @@ trajectories and reported convergence at 2.8 ns).
 **t_total_ps in the CSVs is per replica** (2.95-3.1 ns at the 3 ns stage, 0.95-1.11 ns at 1 ns; the 500 K systems
 ran on lighter ranks and got more steps in the same wall time).
 
+**MSD curves behind Fig. 5a (2026-09-25).** `data/msd_curves_3ns_rep0.npz`
+holds, for replica 0 of every (structure, T), the interior-Li MSD per lag index
+(frames every 2 ps, first 1.5 ns of lags) computed with the selection of
+`09_li_kinetics.py`; `scripts/12_msd_curves.py` in the ALCHEMI package
+regenerates it. `data/diffusion_{by_T,arrhenius}_3ns_long.csv` are the
+50-1000 ps fit-window results quoted under long-lag robustness.
+
+**Frame gap at the chunk-1/2 boundary (found 2026-09-25, fix owed).** Every
+replica-0 trajectory has one gap of 32-52 ps (162-182 ps on the 500 K systems)
+in the saved frames at t = 0.5 ns, where chunk 2 resumed. `09_li_kinetics.py`
+computes the MSD with an FFT that assumes evenly spaced frames, so ion pairs
+spanning the gap are assigned a lag that is too short. Estimated bias on D over
+the 10-300 ps window: about +1-2 % at 800 K and up to +10 % on the 500 K
+systems (which are bounds anyway); larger for the 50-1000 ps window. Fig. 5a
+uses the frame index times 2 ps as the lag axis so the gap does not appear as a
+plateau. To do: MSD on continuous segments (or time-aware origins), rerun 09,
+and check the chunk-2 start states against the chunk-1 last frames; the
+numbers in the paper should move by less than the replica scatter.
+
 **Sanity checks still owed on the diffusion numbers (not yet done):**
 1. DFT-FE single points on 12 production frames (one 800 K mid-hop and one
    500 K random frame per interface, `chemistry/dftfe_subset12/`): force error
