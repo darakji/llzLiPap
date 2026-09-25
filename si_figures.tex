@@ -26,3 +26,36 @@ in any cell. Values are transcribed from
 \texttt{figs/make\_fig\_chemistry.py}.}
 \label{fig:chemistry}
 \end{figure}
+
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{table}{1}
+
+\begin{table}[htbp]
+\centering
+\caption{\textbf{Supplementary Table S2. Interface chemistry per cell at 800~K
+after about 3~ns of production}, means over five replicas. Undercoordinated Zr
+and La are the fractions with fewer than six O within 2.6~\AA\ and fewer than
+eight O within 2.9~\AA\ respectively, for atoms within $\pm3$~\AA\ of the
+interface plane (contact) and in the electrolyte interior. Hops are interior
+lithium displacements above 2~\AA\ within 2~ps, per lithium per nanosecond;
+cooperative hops have a second lithium within 4~\AA\ hopping in the same
+window. O above plane is the number of oxygen atoms more than 2~\AA\ above the
+interface plane at the end of the run; Zr and La above the plane are zero in
+every cell. Li--O is the first-neighbour distance and O coordination of
+interior lithium. Source: \texttt{data/chemistry\_report\_3ns.md}.}
+\label{tab:chemistry}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+Cell & \multicolumn{2}{c}{Zr $<6$ O (\%)} & \multicolumn{2}{c}{La $<8$ O (\%)} & Hops & Coop. & O above & Li--O (\AA) / CN \\
+ & contact & interior & contact & interior & (Li$^{-1}$ns$^{-1}$) & (\%) & plane & \\
+\midrule
+Li(100)/LLZO(110), 1 vac            & 0  & 1 & 96 & 26 & 5.7  & 23 & 0.6 & 1.94 / 5.4 \\
+Li(100)/LLZO(100)-ct, 0.5 vac       & 55 & 2 & 87 & 29 & 15.7 & 3  & 0.2 & 1.91 / 5.5 \\
+Li(100)/LLZO(110)-ct, 1 vac         & 95 & 1 & 97 & 29 & 12.1 & 7  & 1.2 & 1.92 / 5.5 \\
+Li(111)/LLZO(001), 0.5 vac          & 37 & 2 & 96 & 50 & 41.1 & 18 & 1.0 & 1.96 / 4.6 \\
+Li(100)/LLZO(100)-ct, held-out      & 56 & 1 & 67 & 24 & 4.2  & 26 & 0.0 & 1.93 / 5.0 \\
+Li(100)/LLZO(110)-ct, held-out      & 0  & 0 & 83 & 30 & 10.7 & 15 & 3.2 & 1.93 / 4.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
