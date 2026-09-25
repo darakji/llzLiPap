@@ -131,16 +131,48 @@ profiles, z-resolved D, hop rates, RDFs) is in
 rebuilds Fig. 5 from the CSVs; pass the tag of a newer copy (e.g. `5ns`) when
 the extension chunks finish.
 
-**Interior D at 800 K, 1 ns, mean over 5 replicas (cm2/s; alpha; N_eff):**
-Li(100)/LLZO(110) 1 vac 2.5e-7 (0.74, 17); Li(100)/LLZO(100)-ct 0.5 vac 1.6e-7
-(0.66, 16); Li(100)/LLZO(110)-ct 1 vac 2.4e-7 (0.74, 38); Li(111)/LLZO(001)
-0.5 vac 1.1e-6 (0.87, 216); held-out Li(100)/LLZO(100)-ct 2.0e-7 (0.71, 19);
-held-out Li(100)/LLZO(110)-ct 4.3e-7 (0.81, 63). All ct cells have Li(100)
-metal. Arrhenius Ea (meV): 358+-60, 682+-105, 415+-42, 445+-33,
-403+-90, 588+-46. Nernst-Einstein sigma(300 K) in S/cm: 6.7e-6, 1.6e-9, 1.6e-6,
-3.6e-6, 1.7e-6, 4.6e-8. Tetragonal LLZO experiment (Awaka 2009): 1.6e-6 S/cm,
-540 meV. Interface-exchange Ea (crossings, no residence filter): 251, 226, 188,
-316, 391, 298 meV.
+**Interior D at 800 K, 3 ns, mean over 5 replicas (cm2/s; alpha; N_eff),
+fit window 10-300 ps (the numbers in the paper):**
+Li(100)/LLZO(110) 1 vac 2.6e-7 (0.75); Li(100)/LLZO(100)-ct 0.5 vac 1.2e-7
+(0.61); Li(100)/LLZO(110)-ct 1 vac 2.1e-7 (0.72); Li(111)/LLZO(001) 0.5 vac
+8.6e-7 (0.82); held-out Li(100)/LLZO(100)-ct 1.2e-7 (0.62); held-out
+Li(100)/LLZO(110)-ct 1.6e-6 (0.89). All ct cells have Li(100) metal.
+Arrhenius Ea (meV): 343+-90, 696+-44, 421+-28, 407+-20, 425+-67, 848+-48.
+Nernst-Einstein sigma(300 K) in S/cm: 7.5e-6, 8.4e-10, 1.2e-6, 7.5e-6,
+6.7e-7, 3.1e-10. Tetragonal LLZO experiment (Awaka 2009): 1.6e-6 S/cm,
+540 meV.
+
+**Long-lag robustness (fit window 50-1000 ps on the same 3 ns data,
+`kinetics_3ns_long/`).** At 800 K alpha rises to 0.78, 0.79, 0.84, 0.85,
+0.80, 0.94 (N_eff 38, 31, 91, 325, 34, 729; replica RSD 20, 34, 24, 11, 53,
+30 %), D becomes 1.7e-7, 1.1e-7, 1.9e-7, 7.2e-7, 1.1e-7, 1.6e-6 cm2/s, Ea
+335+-45, 743+-80, 430+-21, 455+-7, 478+-68, 862+-17 meV, and sigma(300 K)
+8.3e-6, 2.6e-10, 8.4e-7, 2.0e-6, 1.9e-7, 2.1e-10 S/cm. Every conclusion in
+the text (four cells within an order of magnitude of Awaka, seed2 and idx1
+low, idx1 regime change at 800 K) is the same under both windows; the short
+window is kept in the paper because the 500-600 K MSDs are not linear at
+lags beyond ~300 ps. The 1 ns stage gave 2.5e-7, 1.6e-7, 2.4e-7, 1.1e-6,
+2.0e-7, 4.3e-7 cm2/s at 800 K (alpha 0.66-0.87) and Ea 358, 682, 415, 445,
+403, 588 meV; five of six 800 K coefficients moved by less than the replica
+scatter between 1 and 3 ns (ratios 0.6-1.05), idx1 rose 3.8-fold.
+
+**idx1 Arrhenius.** With the 800 K point excluded (500-700 K only) the
+held-out Li(100)/LLZO(110)-ct cell gives a barrier in the same range as the
+other cells; the 850 meV four-point value is a mixed-mechanism fit and is
+flagged as such in the text. To do before the 5 ns update: report the
+three-point fit alongside it.
+
+**Depth profiles (O-based formula units, replica 0, 800 K, 3 ns,
+`depth_profiles/`).** Interior (8-25 A below the plane) Li per formula unit
+is 7.0-7.3 on five cells and about 8 on Li(111)/LLZO(001). Hop rate (|dr| >
+2 A per 2 ps frame, per Li per ns) in the 8-13 / 13-18 / 18-25 A bins: seed1
+2.0/2.4/1.4, seed2 1.8/1.0/0.1, seed3 1.9/1.2/1.7, seed4 9.1/5.7/13.4, idx0
+0.0/0.4/0.3, idx1 1.8/1.9/4.9. Seed2 and idx0 are slow at the same
+stoichiometric composition as seed1/seed3: the D spread across the four
+Li(100) cells is a facet effect, not a composition effect. Seed4 is both
+Li-rich and fast, and its (001) surface reacts at 800 K (La sliding, one La
+1.8-2.4 A above the plane, top 3 A rms up to 2.1 A; 3-8 A band <= 1 A;
+interior 0.3 A).
 
 **Why 500-800 K and not 300 K.** At 300-450 K with 0.5 ns the interior Li
 never left its cage (alpha ~ 0.1); the room-temperature number is only
@@ -159,14 +191,16 @@ transport regime is model-independent. A sentence to that effect was in the
 Results draft and was cut on review. To support it: rerun omat on all six
 cells at 700 and 800 K, 3 replicas, >= 500 ps.
 
-**Exchange barrier threshold.** The 190-390 meV in the paper is the
-t_res = 0 column (every crossing of the +-1.5 A band). With t_res = 200 ps the
-same cells give 154 / 91 / 59 / 129 / 244 / 158 meV. Both are now stated in
-the text; the residence criterion is a free parameter and the 5 ns data
-should show whether the filtered value converges (Burov used residence-time
-filtering on 40 ns trajectories).
+**Exchange barrier threshold (3 ns).** The 180-450 meV in the paper is the
+t_res = 0 column (every crossing of the +-1.5 A band): 283, 280, 178, 330,
+448, 344 meV. With t_res = 200 ps the same cells give 120, 147, 62, 137,
+328, 171 meV, and with t_res = 1000 ps 32, 45, 3, 1, 208, 68 meV. The
+filtered barrier has not converged with residence time at 3 ns; the
+residence criterion is a free parameter and the 5 ns data should show
+whether it converges (Burov used residence-time filtering on 40 ns
+trajectories and reported convergence at 2.8 ns).
 
-**t_total_ps in the CSVs is per replica** (0.95-1.11 ns; the 500 K systems
+**t_total_ps in the CSVs is per replica** (2.95-3.1 ns at the 3 ns stage, 0.95-1.11 ns at 1 ns; the 500 K systems
 ran on lighter ranks and got more steps in the same wall time).
 
 **Sanity checks still owed on the diffusion numbers (not yet done):**
@@ -174,8 +208,9 @@ ran on lighter ranks and got more steps in the same wall time).
    500 K random frame per interface, `chemistry/dftfe_subset12/`): force error
    of the fine-tune vs the foundation model under production conditions.
 2. NEB barrier of an interior Li vacancy hop, fine-tune vs DFT-FE.
-3. Convergence in run length: 1 ns vs 5 ns (extension chunks running); alpha
-   must approach 1 at 700-800 K and the Arrhenius slope must stop moving.
+3. Convergence in run length: 1 vs 3 ns done (above); 3 vs 5 ns pending
+   (chunks 5-6 running); alpha must approach 1 at 700-800 K and the
+   Arrhenius slope must stop moving.
 4. Thermostat independence of D at the production temperatures (an NVE
    segment from a thermalised state); the NH-vs-Langevin test so far is at
    300-450 K only.
@@ -209,4 +244,4 @@ the activation energies (0.36-0.68 eV) match stoichiometric t-LLZO (Awaka 2009
 0.12 eV, 23 mS/cm) and Yan 2024 find to be a fast conductor. The Results text
 should say this instead of "comparison to the phase, not the composition".
 Owed: emit interior Li/f.u. vs time from 09/11 with the f.u. count taken as
-(La/3 + Zr/2)/2.
+O/12 (the La/Zr count per bin is too noisy; see depth profiles above).
