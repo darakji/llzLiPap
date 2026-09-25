@@ -1,4 +1,4 @@
-**Current manuscript file: `main.tex`** (rebuilt 2026-09-25 from the npj template with figures inline for initial submission; `npj_v0_template.tex` is the superseded earlier draft and `si_v0.tex` with Supplementary Notes 1–7 lives on the other machine until pushed; `si_figures.tex` holds Supplementary Fig. S1).
+**Current manuscript file: `main.tex`** (rebuilt 2026-09-25 from the npj template with figures inline for initial submission; `npj_v0_template.tex` is the superseded earlier draft and `si_v0.tex` with Supplementary Notes 1–7 lives on the other machine until pushed).
 
 # Complete context for editing `npj_v0_template.tex`
 
@@ -126,7 +126,7 @@ Compiles clean under tectonic.
 | Results — Residual error at the free surface | Done |
 | Results — Acquisition signal predicts DFT error | Done |
 | Results — Domain of validity | Done |
-| Results — Diffusion-coefficient validation | Written from the 3 ns campaign (500–800 K, 5 replicas, 6 interfaces); includes the vacancy-filling composition finding and an interface-chemistry paragraph. Numbers to refresh at 5 ns. Fig. 5 has four panels: (a) MSD curves (data/msd_curves_3ns_rep0.npz), (b) Arrhenius, (c) Ea per cell vs literature, (d) sigma(300 K) per cell vs experiment; the chemistry figure is Supplementary Fig. S1 (si_figures.tex, figs/fig_chemistry.pdf) |
+| Results — Diffusion-coefficient validation | Written from the 3 ns campaign (500–800 K, 5 replicas, 6 interfaces); includes the vacancy-filling composition finding and an interface-chemistry paragraph. Numbers to refresh at 5 ns. Fig. 5 has four panels: (a) MSD curves (data/msd_curves_3ns_rep0.npz), (b) Arrhenius, (c) Ea per cell vs literature, (d) sigma(300 K) per cell vs experiment; the interface chemistry is Fig. 6 (figs/fig_chemistry.pdf) and Table 2 in the main text for this draft, to move to the SI before submission (display-item limit is 6) |
 | Discussion | Done, incl. "Transfer to other systems" |
 | Methods — all subsections | Done except interface-construction detail |
 | References | 14 entries, 6 are `[TODO]` placeholders (ALCHEMI added) |

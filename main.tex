@@ -2,9 +2,9 @@
 % npj Computational Materials -- Article
 % Constraints (Guide to Authors, checked 2026-08-28; re-check before submission):
 %   abstract <= 250 words, unstructured | main text <= 5,000 words
-%   <= 6 tables+figures combined (currently 5 figures + 1 table = 6, FULL;
-%     Fig. 5 is a four-panel figure; the interface-chemistry figure and
-%     per-cell table are Supplementary Fig. S1 / Table S2 in si_figures.tex)
+%   <= 6 tables+figures combined (currently 6 figures + 2 tables = 8, OVER:
+%     Fig. 6 and Table 2, the interface chemistry, are in the main text for
+%     this draft and must move to the SI (Fig. S1 / Table S2) before submission)
 %   <= ~50 references, numerical superscript citations only
 %   section order fixed: Title -> Abstract -> Intro -> Results -> Discussion ->
 %     Methods -> Acknowledgements -> Competing Interests -> Contributions ->
@@ -19,8 +19,7 @@
 % Rebuild 2026-09-25 from commit f08c71a (3 ns diffusion stage). Lines tagged "% VERIFY" carry a
 % statement taken from the 2026 BS thesis or inferred from file names; check
 % against the current pipeline before submission. Material moved out of the
-% main text lives in si_v0.tex (Supplementary Notes 1-7); supplementary
-% figures live in si_figures.tex.
+% main text lives in si_v0.tex (Supplementary Notes 1-7).
 % ============================================================================
 
 \documentclass[11pt]{article}
@@ -437,8 +436,8 @@ yet converged with residence time. Reported values are 167~meV for the Ga-doped
 cubic interface from residence-filtered simulation\citep{burov2026} and 370~meV
 from impedance on Li$|$Al-LLZO\citep{Krauskopf2019}.
 
-The same trajectories characterise the contact itself (Supplementary
-Fig.~S1 and Supplementary Table~S2). In the electrolyte interior 0--2\% of Zr have fewer than six oxygen
+The same trajectories characterise the contact itself
+(Fig.~\ref{fig:chemistry}, Table~\ref{tab:chemistry}). In the electrolyte interior 0--2\% of Zr have fewer than six oxygen
 neighbours at every temperature, so the framework is intact; within $\pm3$~\AA\
 of the interface plane the undercoordinated fraction is a fixed property of the
 as-built termination, 0\% on the two plain (110) cells, 37\% on the (001) cell,
@@ -489,6 +488,56 @@ for tetragonal LLZO\citep{Awaka2009}; the band spans a factor of five either
 side of experiment.}
 \label{fig:msd}
 \end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figs/fig_chemistry.pdf}
+\caption{\textbf{Interface chemistry at 800~K after about 3~ns of
+production.} Means over five replicas for the six interfaces of
+Fig.~\ref{fig:msd}. \textbf{a}, Fraction of Zr with fewer than six O neighbours within
+2.6~\AA, for Zr within $\pm3$~\AA\ of the interface plane (contact) and for Zr
+in the electrolyte interior. The contact value is a property of the as-built
+termination (0--96\%) and does not change between 1 and 3~ns; the interior
+value is 0--2\% at every temperature. \textbf{b}, Rate of interior lithium hops,
+defined as displacements above 2~\AA\ within 2~ps, per lithium per nanosecond;
+labels give the share of hops in which a second lithium within 4~\AA\ hops in
+the same 2~ps window. \textbf{c}, Framework atoms found more than 2~\AA\ above
+the interface plane at the end of the run: 0--3 oxygen per cell and no Zr or La
+in any cell. Values are transcribed from
+\texttt{data/chemistry\_report\_3ns.md} and plotted by
+\texttt{figs/make\_fig\_chemistry.py}.}
+\label{fig:chemistry}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Interface chemistry per cell at 800~K after about 3~ns of
+production, means over five replicas. Undercoordinated Zr
+and La are the fractions with fewer than six O within 2.6~\AA\ and fewer than
+eight O within 2.9~\AA\ respectively, for atoms within $\pm3$~\AA\ of the
+interface plane (contact) and in the electrolyte interior. Hops are interior
+lithium displacements above 2~\AA\ within 2~ps, per lithium per nanosecond;
+cooperative hops have a second lithium within 4~\AA\ hopping in the same
+window. O above plane is the number of oxygen atoms more than 2~\AA\ above the
+interface plane at the end of the run; Zr and La above the plane are zero in
+every cell. Li--O is the first-neighbour distance and O coordination of
+interior lithium. Source: \texttt{data/chemistry\_report\_3ns.md}.}
+\label{tab:chemistry}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+Cell & \multicolumn{2}{c}{Zr $<6$ O (\%)} & \multicolumn{2}{c}{La $<8$ O (\%)} & Hops & Coop. & O above & Li--O (\AA) / CN \\
+ & contact & interior & contact & interior & (Li$^{-1}$ns$^{-1}$) & (\%) & plane & \\
+\midrule
+Li(100)/LLZO(110), 1 vac            & 0  & 1 & 96 & 26 & 5.7  & 23 & 0.6 & 1.94 / 5.4 \\
+Li(100)/LLZO(100)-ct, 0.5 vac       & 55 & 2 & 87 & 29 & 15.7 & 3  & 0.2 & 1.91 / 5.5 \\
+Li(100)/LLZO(110)-ct, 1 vac         & 95 & 1 & 97 & 29 & 12.1 & 7  & 1.2 & 1.92 / 5.5 \\
+Li(111)/LLZO(001), 0.5 vac          & 37 & 2 & 96 & 50 & 41.1 & 18 & 1.0 & 1.96 / 4.6 \\
+Li(100)/LLZO(100)-ct, held-out      & 56 & 1 & 67 & 24 & 4.2  & 26 & 0.0 & 1.93 / 5.0 \\
+Li(100)/LLZO(110)-ct, held-out      & 0  & 0 & 83 & 30 & 10.7 & 15 & 3.2 & 1.93 / 4.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % ===========================================================================
 \section{Discussion}
