@@ -336,7 +336,7 @@ interfaces --- Li(100)/LLZO(110) and Li(100) on an LLZO(110) ct-terminated
 cell at 1 vacancy per formula unit, Li(111)/LLZO(001) and Li(100) on an
 LLZO(100) ct-terminated cell at 0.5, and one Li(100) cell on each ct
 termination from the held-out set; 420--1378 atoms --- at
-500, 600, 700 and 800~K with five independent replicas each and 0.95--1.1~ns
+500, 600, 700 and 800~K with five independent replicas each and 2.95--3.1~ns
 per replica, 120 trajectories in all (Methods). These six cover both trained
 vacancy concentrations, both interface-construction families, and three of the
 five LLZO terminations present in the training set; the (010) and (011)
@@ -346,43 +346,59 @@ of the electrolyte slab, at least 8~\AA\ below the measured interface plane and
 4~\AA\ above the fixed substrate, on atoms that never enter the metal. This is
 the quantity that can be compared with bulk data, and it isolates the
 electrolyte from the liquid-like first layer of metal in contact with it.
+The composition of that interior is set by the metal, not by the nominal
+doping: counting lithium per formula unit in the oxide, the 0.5--1 vacancies
+per formula unit built into the cells are filled from the metal within the
+first 0.5~ns at every temperature (5.8--6.6 to 6.9--7.6 Li per formula unit),
+and at 800~K the oxide becomes slightly lithium-rich (up to 7.8). The
+numbers below therefore describe stoichiometric-to-lithium-rich tetragonal
+LLZO in contact with lithium metal.
 
 At 800~K every interface is diffusive: the log--log slope of the interior
-mean-squared displacement is $\alpha=0.66$--$0.87$, the effective number of
-hops per trajectory\citep{He2018} is 16--216, and the interior diffusion
-coefficient is $1.6$--$4.3\times10^{-7}$~cm$^2$/s on five of the six cells and
-$1.1\times10^{-6}$~cm$^2$/s on the LLZO(001) cell, with replica-to-replica
-standard deviations of 20--55\% (Fig.~\ref{fig:msd}). At 700~K the same
-ordering holds at $2\times10^{-8}$--$4\times10^{-7}$~cm$^2$/s with
-$\alpha=0.24$--$0.78$. At 500 and 600~K the interior lithium is still caged on
+mean-squared displacement over 10--300~ps lags is $\alpha=0.61$--$0.89$, the
+effective number of hops per window\citep{He2018} is 11--230, and the interior
+diffusion coefficient is $1.2$--$2.6\times10^{-7}$~cm$^2$/s on four of the six
+cells, $8.7\times10^{-7}$~cm$^2$/s on the LLZO(001) cell and
+$1.6\times10^{-6}$~cm$^2$/s on the held-out Li(100)/LLZO(110) cell, with
+replica-to-replica standard deviations of 13--52\% (Fig.~\ref{fig:msd}).
+Between 1 and 3~ns of production the 800~K coefficients of five cells moved by
+less than the replica scatter (ratios 0.6--1.05); the held-out
+Li(100)/LLZO(110) cell rose 3.8-fold as its oxide became lithium-rich, a change
+of mechanism toward interstitial-mediated transport rather than a statistical
+drift. At 700~K the ordering holds at $2\times10^{-8}$--$3.5\times10^{-7}$~cm$^2$/s
+with $\alpha=0.31$--$0.74$. At 500 and 600~K the interior lithium is still caged on
 the nanosecond scale ($\alpha\leq0.6$, fewer than ten effective hops on most
 cells), so those points bound $D$ from above rather than measure it. A
-four-temperature Arrhenius fit gives activation energies of 360--680~meV (mean
-480~meV). Extrapolated to 300~K and converted by the Nernst--Einstein relation
-with unit Haven ratio, four of the six cells give $1.6$--$6.7\times10^{-6}$~S/cm
-against the measured $1.6\times10^{-6}$~S/cm and 540~meV of tetragonal
+four-temperature Arrhenius fit gives activation energies of 340--700~meV on
+five cells (mean 460~meV) and 850~meV on the held-out Li(100)/LLZO(110) cell,
+whose 800~K point belongs to a different regime from its 500--700~K points.
+Extrapolated to 300~K and converted by the Nernst--Einstein relation with unit
+Haven ratio, four of the six cells give $0.7$--$7.5\times10^{-6}$~S/cm against
+the measured $1.6\times10^{-6}$~S/cm and 540~meV of tetragonal
 LLZO\citep{Awaka2009} --- the ordered polymorph from which every cell here was
-built, whose lithium sublattice is fully occupied in the ordered arrangement
-and whose conductivity is three orders of magnitude below that of the cubic
-phase. The comparison is to the phase, not the composition: the measurement is
-on stoichiometric material, whereas these cells carry 0.5--1 vacancies per
-formula unit, which is what gives them mobile carriers at all. The Li(100)/LLZO(100) cell at 0.5 vacancies and the held-out Li(100)/LLZO(110)
-cell
-extrapolate lower (0.002 and 0.05~$\mu$S/cm) because their 500--600~K points
-are the most strongly caged; their 800~K coefficients are not outliers.
+built and, after the vacancy filling described above, the composition the
+interior actually has. This is the comparison the data support: vacancy-doped
+tetragonal LLZO is a fast conductor in simulation (120~meV at 1.8\%
+vacancies\citep{burov2026}), and none of the cells behaves that way because
+none of them keeps its vacancies in contact with the metal. The
+Li(100)/LLZO(100) cell at 0.5 vacancies and the held-out Li(100)/LLZO(110)
+cell extrapolate lower (0.0008 and 0.0003~$\mu$S/cm), the first because its
+500--600~K points are the most strongly caged, the second because of the
+regime change at 800~K; their 800~K coefficients are not outliers.
 Interfacial exchange is resolvable in the same runs, but its barrier depends
 on what is counted as a crossing: every passage of the interface plane gives
-exchange activation energies of 190--390~meV across the six cells, while
+exchange activation energies of 180--450~meV across the six cells, while
 counting only lithium that remains at least 200~ps on the far side gives
-60--240~meV. Reported values are 167~meV for the Ga-doped cubic interface
+60--330~meV. Reported values are 167~meV for the Ga-doped cubic interface
 from residence-filtered simulation\citep{burov2026} and 370~meV from
 impedance on Li$|$Al-LLZO\citep{Krauskopf2019}.
 
 Three qualifications apply. The interior values are for a fixed lattice at the
 tetragonal density in a slab 15--30~\AA\ thick, not a periodic bulk; the
 replica scatter at 500--600~K is set by too few hops rather than by the
-potential; and about 1~ns per replica is the first stage of a longer campaign, so the
-low-temperature points and the fitted activation energies will tighten. Within
+potential; and 3~ns per replica is the second stage of a 5~ns campaign, so the
+low-temperature points will tighten further, although the 800~K values and
+five of the six activation energies did not move between 1 and 3~ns. Within
 those limits the potential reproduces the transport regime of the polymorph it
 was trained on --- slow, ordered-sublattice conduction with a half-eV barrier
 --- rather than the fast cubic-phase transport of the doped materials most
@@ -606,7 +622,7 @@ GPU across 100 nodes of the PARAM Rudra system. Each of the six interfaces was
 simulated at 500, 600, 700 and 800~K with five replicas differing in initial
 velocities, under a Nos\'e--Hoover thermostat (coupling time 100~fs) with a
 2~fs timestep and the open-$z$ boundary conditions of the reference data;
-configurations were recorded every 2~ps, and each replica ran for 0.95--1.1~ns
+configurations were recorded every 2~ps, and each replica ran for 2.95--3.1~ns
 depending on the throughput of its GPU. The oxide substrate is fixed as in the
 sampling runs, and in addition the outermost $\max(0.15\,t_{\mathrm{Li}},
 4~\text{\AA})$ of the metal slab, where $t_{\mathrm{Li}}$ is its thickness, is
@@ -776,7 +792,7 @@ labelled structures ($r=0.85$).
 \paragraph{Figure 5.} \label{fig:msd} Interior lithium transport from
 production molecular dynamics. Arrhenius plot of the diffusion coefficient of
 lithium in the electrolyte interior for the six interfaces at 500--800~K, mean
-and standard deviation over five replicas of about 1~ns each, with the per-cell
+and standard deviation over five replicas of about 3~ns each, with the per-cell
 Arrhenius fits. Filled symbols are diffusive points ($\alpha\geq0.6$); open
 symbols are caged points that bound $D$ from above. The dashed line is the
 measured conductivity of tetragonal LLZO\citep{Awaka2009} converted to a

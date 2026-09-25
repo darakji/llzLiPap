@@ -119,8 +119,9 @@ uncertainty predicts realised DFT error at r = 0.85.
 
 ## Diffusion campaign: full numbers and pending sanity checks (added 2026-09-25)
 
-**Where the numbers live.** `data/diffusion_by_T_1ns.csv` and
-`data/diffusion_arrhenius_1ns.csv` are verbatim copies of
+**Where the numbers live.** `data/diffusion_by_T_3ns.csv` and
+`data/diffusion_arrhenius_3ns.csv` (current; the `_1ns` files are the first
+stage) are verbatim copies of
 `alchemi_a100_package/results/campaign_midT_lid/kinetics/{by_T,arrhenius}.csv`
 on PARAM Rudra (home `/home/nsmext/phanim.iisc`). Per-system values (120 rows)
 are in `kinetics/systems.csv` there; the structural/chemical companion analysis
@@ -192,3 +193,20 @@ to that coordinate and linear in step count (2.4e-7 A/step at the cell edge;
 components exactly zero, replicas identical). Effect on interior D is bounded
 below 1 % (drift over a 300 ps window <= 0.04 A). Mechanism not yet identified;
 to test: wrap every N steps instead of every step, or float64 positions.
+9. Oxide-Li wall sensitivity: one cell at 800 K, five replicas, with the Li in
+   the frozen oxide band also fixed; compare interior D with the standard
+   setup. The existing "wall" test (2026-09-24) compared stability only.
+
+**Composition of the oxide during production (2026-09-25).** Counting Li per
+formula unit (3 Li/La) in the oxide below the interface plane from the restart
+files of replica 0: seed values 5.8-6.6 (nominal 0.5-1 vacancy per f.u.; idx1
+7.1) rise to 6.8-7.6 within the first 0.5 ns at every temperature and stay at
+6.9-7.8 to 3 ns. The Li-metal reservoir fills the vacancies, so the interior
+whose D is reported is stoichiometric-to-Li-rich tetragonal LLZO. This is why
+the activation energies (0.36-0.68 eV) match stoichiometric t-LLZO (Awaka 2009
+0.54 eV; Wang 2015 and Wolfenstine 2012 experiment 0.41 eV; Miara 2013 AIMD
+0.43 eV) rather than vacancy-doped t-LLZO, which Burov 2026 (1.8 % vacancies,
+0.12 eV, 23 mS/cm) and Yan 2024 find to be a fast conductor. The Results text
+should say this instead of "comparison to the phase, not the composition".
+Owed: emit interior Li/f.u. vs time from 09/11 with the f.u. count taken as
+(La/3 + Zr/2)/2.

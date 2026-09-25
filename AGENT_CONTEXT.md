@@ -124,7 +124,7 @@ Compiles clean under tectonic.
 | Results — Residual error at the free surface | Done |
 | Results — Acquisition signal predicts DFT error | Done |
 | Results — Domain of validity | Done |
-| Results — Diffusion-coefficient validation | Written from the 1 ns campaign (500–800 K, 5 replicas, 6 interfaces). Numbers to refresh at 5 ns |
+| Results — Diffusion-coefficient validation | Written from the 3 ns campaign (500–800 K, 5 replicas, 6 interfaces); includes the vacancy-filling composition finding. Numbers to refresh at 5 ns |
 | Discussion | Done, incl. "Transfer to other systems" |
 | Methods — all subsections | Done except interface-construction detail |
 | References | 14 entries, 6 are `[TODO]` placeholders (ALCHEMI added) |
@@ -173,7 +173,7 @@ do not apply to it.
 
 **What still moves.** When the 5 ns chunks finish: rerun
 `09_li_kinetics.py` and `11_structure_chemistry.py`, copy the two CSVs into
-`data/` with tag `5ns`, rebuild Fig. 5 with `figs/make_fig_diffusion.py 5ns`,
+`data/` with tag `5ns` (the `3ns` copies are the current ones), rebuild Fig. 5 with `figs/make_fig_diffusion.py 5ns`,
 and update the numbers in the Results subsection (800 K D range, alpha range,
 N_eff range, Ea range and mean, the sigma(300 K) list, the exchange Ea range)
 and the "1 ns per replica" statements in Results, Methods and the legend. If
