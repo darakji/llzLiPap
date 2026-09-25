@@ -17,11 +17,11 @@ KB = 8.617333e-5  # eV/K
 
 NAMES = {
     "seed1_420at_Li100_LLZO110_vac1pfu": ("Li(100)/LLZO(110), 1 vac", "C0", "o"),
-    "seed2_536at_LLZO100ct_vac0p5pfu": ("LLZO(100)-ct, 0.5 vac", "C1", "s"),
-    "seed3_792at_LLZO110ct_vac1pfu": ("LLZO(110)-ct, 1 vac", "C2", "^"),
+    "seed2_536at_LLZO100ct_vac0p5pfu": ("Li(100)/LLZO(100)-ct, 0.5 vac", "C1", "s"),
+    "seed3_792at_LLZO110ct_vac1pfu": ("Li(100)/LLZO(110)-ct, 1 vac", "C2", "^"),
     "seed4_1378at_Li111_LLZO001_vac0p5pfu": ("Li(111)/LLZO(001), 0.5 vac", "C3", "D"),
-    "unseen_2frames_dftfe_labelled_idx0": ("LLZO(100)-ct, held-out", "C4", "v"),
-    "unseen_2frames_dftfe_labelled_idx1": ("LLZO(110)-ct, held-out", "C5", "P"),
+    "unseen_2frames_dftfe_labelled_idx0": ("Li(100)/LLZO(100)-ct, held-out", "C4", "v"),
+    "unseen_2frames_dftfe_labelled_idx1": ("Li(100)/LLZO(110)-ct, held-out", "C5", "P"),
 }
 
 rows = list(csv.DictReader(open(os.path.join(ROOT, "data", f"diffusion_by_T_{TAG}.csv"))))

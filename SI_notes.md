@@ -131,10 +131,11 @@ rebuilds Fig. 5 from the CSVs; pass the tag of a newer copy (e.g. `5ns`) when
 the extension chunks finish.
 
 **Interior D at 800 K, 1 ns, mean over 5 replicas (cm2/s; alpha; N_eff):**
-Li(100)/LLZO(110) 1 vac 2.5e-7 (0.74, 17); LLZO(100)-ct 0.5 vac 1.6e-7 (0.66,
-16); LLZO(110)-ct 1 vac 2.4e-7 (0.74, 38); Li(111)/LLZO(001) 0.5 vac 1.1e-6
-(0.87, 216); held-out LLZO(100)-ct 2.0e-7 (0.71, 19); held-out LLZO(110)-ct
-4.3e-7 (0.81, 63). Arrhenius Ea (meV): 358+-60, 682+-105, 415+-42, 445+-33,
+Li(100)/LLZO(110) 1 vac 2.5e-7 (0.74, 17); Li(100)/LLZO(100)-ct 0.5 vac 1.6e-7
+(0.66, 16); Li(100)/LLZO(110)-ct 1 vac 2.4e-7 (0.74, 38); Li(111)/LLZO(001)
+0.5 vac 1.1e-6 (0.87, 216); held-out Li(100)/LLZO(100)-ct 2.0e-7 (0.71, 19);
+held-out Li(100)/LLZO(110)-ct 4.3e-7 (0.81, 63). All ct cells have Li(100)
+metal. Arrhenius Ea (meV): 358+-60, 682+-105, 415+-42, 445+-33,
 403+-90, 588+-46. Nernst-Einstein sigma(300 K) in S/cm: 6.7e-6, 1.6e-9, 1.6e-6,
 3.6e-6, 1.7e-6, 4.6e-8. Tetragonal LLZO experiment (Awaka 2009): 1.6e-6 S/cm,
 540 meV. Interface-exchange Ea (crossings, no residence filter): 251, 226, 188,
@@ -183,3 +184,11 @@ ran on lighter ranks and got more steps in the same wall time).
 7. Li-sublattice ordering of the seeds (site-occupancy check that the
    starting cells are the ordered tetragonal arrangement, as claimed).
 8. z-padding convergence and the periodic-sandwich comparison (above).
+
+**Frozen-atom creep in the ALCHEMI runs (2026-09-25).** Frozen atoms show a
+deterministic displacement along one in-plane axis per structure, proportional
+to that coordinate and linear in step count (2.4e-7 A/step at the cell edge;
+0.20 A after 0.84 Mstep; zero on two of six cells). Not thermal motion (x/z
+components exactly zero, replicas identical). Effect on interior D is bounded
+below 1 % (drift over a 300 ps window <= 0.04 A). Mechanism not yet identified;
+to test: wrap every N steps instead of every step, or float64 positions.

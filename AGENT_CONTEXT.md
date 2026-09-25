@@ -146,6 +146,8 @@ campaign on PARAM Rudra (a different machine from the one in §2: home
 `results/campaign_midT_lid/kinetics/report.md` there; the CSVs behind Fig. 5
 are copied into `data/` in this repo.
 
+**Cell facets:** every ct-terminated cell (seed2, seed3, idx0, idx1) has Li(100) as the metal facet; only seed4 is Li(111). Write them as Li(100)/LLZO(100)-ct etc.
+
 **The protocol actually used (not the 1100 K Langevin stub):** six interfaces
 (the four 420–1378-atom seeds plus the two held-out frames idx0/idx1), 500,
 600, 700, 800 K, five replicas each, Nosé–Hoover (tau 100 fs), 2 fs, fp32
