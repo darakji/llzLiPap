@@ -1,4 +1,6 @@
-"""Figure 5: (a) interior-Li mean-squared displacement, (b) Arrhenius plot of D.
+"""Figure 5: (a) interior-Li MSD, (b) Arrhenius plot of D, (c) activation
+energy per cell against literature, (d) extrapolated sigma(300 K) per cell
+against experiment.
 
 Reads data/diffusion_by_T_<tag>.csv, data/diffusion_arrhenius_<tag>.csv and
 data/msd_curves_<tag>_rep0.npz (copied verbatim from
@@ -25,15 +27,22 @@ NAMES = {
     "unseen_2frames_dftfe_labelled_idx0": ("Li(100)/LLZO(100)-ct, held-out", "C4", "v"),
     "unseen_2frames_dftfe_labelled_idx1": ("Li(100)/LLZO(110)-ct, held-out", "C5", "P"),
 }
+SHORT = ["(110)\n1 vac", "(100)-ct\n0.5 vac", "(110)-ct\n1 vac", "(001)\n0.5 vac", "(100)-ct\nheld-out", "(110)-ct\nheld-out"]
 TCOL = {500: "#3E6B9F", 600: "#2E8B57", 700: "#D08A00", 800: "#8A2036"}
+# literature activation energies for tetragonal LLZO (eV)
+LIT_EA = [(0.54, "expt., Awaka 2009", "--"), (0.41, "expt., Wolfenstine 2012", ":"),
+          (0.43, "AIMD, Miara 2013", "-."), (0.12, "sim., 1.8 % vac., Burov 2026", "-")]
+SIGMA_EXP = 1.6e-6  # S/cm, Awaka 2009
 
 rows = list(csv.DictReader(open(os.path.join(ROOT, "data", f"diffusion_by_T_{TAG}.csv"))))
 arr = {r["structure"]: r for r in csv.DictReader(open(os.path.join(ROOT, "data", f"diffusion_arrhenius_{TAG}.csv")))}
 msd_path = os.path.join(ROOT, "data", f"msd_curves_{TAG}_rep0.npz")
 msd = np.load(msd_path) if os.path.exists(msd_path) else None
 
-fig = plt.figure(figsize=(7.2, 3.4))
-gs = gridspec.GridSpec(1, 2, width_ratios=[1.15, 1], wspace=0.28)
+fig = plt.figure(figsize=(7.2, 6.6))
+outer = gridspec.GridSpec(2, 1, height_ratios=[1.05, 0.85], hspace=0.42)
+gs = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=outer[0], width_ratios=[1.15, 1], wspace=0.28)
+gs2 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=outer[1], width_ratios=[1, 1], wspace=0.32)
 
 # ---- (a) MSD, six small panels sharing axes, uniform 2 ps frame spacing as lag axis
 if msd is not None:
@@ -69,7 +78,7 @@ if msd is not None:
     axs[0].text(-0.42, 1.18, "a", transform=axs[0].transAxes, fontsize=10, fontweight="bold")
     axb = fig.add_subplot(gs[1])
 else:
-    axb = fig.add_subplot(111)
+    axb = fig.add_subplot(gs[:])
 
 # ---- (b) Arrhenius
 ax = axb
@@ -106,9 +115,32 @@ sec.set_xticks([800, 700, 600, 500, 400, 300]); sec.set_xlabel("T (K)", fontsize
 ax.legend(fontsize=5.6, frameon=False, loc="lower left")
 ax.text(0.98, 0.97, "filled: diffusive ($\\alpha\\geq0.6$)\nopen: caged, upper bound", transform=ax.transAxes,
         ha="right", va="top", fontsize=6)
-if msd is not None:
-    ax.text(-0.22, 1.05, "b", transform=ax.transAxes, fontsize=10, fontweight="bold")
-fig.subplots_adjust(left=0.09, right=0.99, top=0.86, bottom=0.14)
+ax.text(-0.22, 1.05, "b", transform=ax.transAxes, fontsize=10, fontweight="bold")
+
+# ---- (c) activation energy per cell vs literature; (d) sigma(300 K) per cell vs experiment
+keys = list(NAMES)
+Ea = np.array([float(arr[k]["Ea_D_meV"]) / 1000 for k in keys])
+Eaerr = np.array([float(arr[k]["Ea_D_err_meV"]) / 1000 for k in keys])
+sig = np.array([float(arr[k]["sigma300_mScm"]) * 1e-3 for k in keys])
+cols = [NAMES[k][1] for k in keys]; x = np.arange(6)
+axc = fig.add_subplot(gs2[0])
+axc.bar(x, Ea, yerr=Eaerr, color=cols, capsize=2, error_kw=dict(lw=0.8))
+for y, lab, ls in LIT_EA:
+    axc.axhline(y, color="k", lw=0.9, ls=ls, label=lab)
+axc.set_ylabel("$E_a$ of interior $D$ (eV)", fontsize=8); axc.set_ylim(0, 1.05)
+axc.legend(fontsize=5.4, frameon=False, loc="upper left", handlelength=1.8)
+axc.text(-0.2, 1.05, "c", transform=axc.transAxes, fontsize=10, fontweight="bold")
+axd = fig.add_subplot(gs2[1])
+b0 = 1e-11; axd.set_yscale("log"); axd.bar(x, sig - b0, bottom=b0, color=cols)
+axd.axhline(SIGMA_EXP, color="k", lw=1.0, ls="--", label="t-LLZO expt. (Awaka 2009)")
+axd.axhspan(SIGMA_EXP / 5, SIGMA_EXP * 5, color="0.88", lw=0, zorder=0, label="within 5× of experiment")
+axd.set_ylabel("$\\sigma$(300 K), extrapolated (S/cm)", fontsize=8); axd.set_ylim(1e-11, 1e-4)
+axd.legend(fontsize=5.4, frameon=False, loc="lower left")
+axd.text(-0.24, 1.05, "d", transform=axd.transAxes, fontsize=10, fontweight="bold")
+for a_ in (axc, axd):
+    a_.set_xticks(x); a_.set_xticklabels(SHORT, fontsize=5.6); a_.tick_params(axis="y", labelsize=7); a_.grid(axis="y", alpha=.25, lw=.4)
+
+fig.subplots_adjust(left=0.09, right=0.99, top=0.93, bottom=0.07)
 out = os.path.join(HERE, "fig_diffusion.pdf")
 fig.savefig(out); fig.savefig(out.replace(".pdf", ".png"), dpi=220)
 print("wrote", out)
