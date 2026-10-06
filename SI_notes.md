@@ -264,3 +264,13 @@ the activation energies (0.36-0.68 eV) match stoichiometric t-LLZO (Awaka 2009
 should say this instead of "comparison to the phase, not the composition".
 Owed: emit interior Li/f.u. vs time from 09/11 with the f.u. count taken as
 O/12 (the La/Zr count per bin is too noisy; see depth profiles above).
+
+## Supplementary Note 8 (new, 2026-10-07): stratified random snapshot audit
+
+LaTeX ready to paste into si_v0.tex: `si_note8_snapshot_audit.tex` (figure `figs/fig_snapshot_audit.pdf`,
+data `data/snapshot_audit.csv`, frames `data/snapshot_audit_50.extxyz`). 50 snapshots, ten 0.5 ns windows x 5,
+balanced over cells and temperatures, RNG seed 20261007 (alchemi_a100_package/scripts/13_snapshot_audit.py).
+All 50 pass eight hard checks (boundary, composition, contacts, force < 10 eV/A, kinetic T +-20 %, no energy
+spike, layer integrity, interior LLZO rms < 0.75 A); closest approach 0.87 of a limit (shortest La-O). Zero
+failures bound unphysical frames below 5.8 % at 95 % confidence. Main text Methods cites it as Supplementary
+Note 8. The 50 frames are the natural set for the owed DFT-FE force check (replaces the earlier "12 frames").
