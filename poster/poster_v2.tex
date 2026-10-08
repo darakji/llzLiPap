@@ -174,11 +174,6 @@ slab.}
         \good{420--1378 atoms}, so the potential is \good{trained at the size
         it is deployed}.
 \end{itemize}
-\vspace{0.2em}
-{\small\textbf{Setup:} GGA--PBE $\bullet$ SPMS pseudopotentials $\bullet$ FE
-order 7 $\bullet$ mesh 1.2\,\AA\ $\bullet$ refinement radius 8\,\AA\ $\bullet$
-smearing 500\,K $\bullet$ SCF $5\times10^{-5}$\,Ha $\bullet$ zero Dirichlet in
-$z$ $\bullet$ OLCF Frontier, 64 nodes $\times$ 4 MI250X.}
 \end{tcolorbox}
 
 \vspace{0.5em}
@@ -221,7 +216,8 @@ $z$ $\bullet$ OLCF Frontier, 64 nodes $\times$ 4 MI250X.}
 Candidates are embedded with the \textbf{current} model: the rotationally
 invariant ($\ell=0$) scalars of the final interaction block, mean-pooled to one
 vector $\mathbf{Z}_S$ per structure. Distance there is the model's own measure
-of chemical difference.
+of chemical difference, and pretrained representations have been shown to be
+strong acquisition signals for active learning of MLIPs [4].
 \vspace{0.2em}
 \begin{equation*}
 k^{*}=\operatorname*{arg\,max}_{k\in\mathcal{P}}\,
@@ -230,10 +226,23 @@ k^{*}=\operatorname*{arg\,max}_{k\in\mathcal{P}}\,
 \delta_k=\min_{s\in\mathcal{S}}\lVert \mathbf{Z}_k-\mathbf{Z}_s\rVert_2,
 \qquad \rho=\max_k \delta_k
 \end{equation*}
+\begin{minipage}[t]{0.53\linewidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{fig_latent.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.44\linewidth}
+\vspace{0pt}
 Seeding on the set already labelled means a near-duplicate \good{can never be
-selected}, so de-duplication is guaranteed by construction. A round closes when
-the worst-covered candidate falls inside the chosen percentile of
-$C(d)=|\{k:\delta_k\le d\}|/|\mathcal{P}|$.
+selected}, so de-duplication is guaranteed by construction.
+\vspace{0.3em}
+
+A round closes when the worst-covered candidate falls inside the chosen
+percentile of $C(d)=|\{k:\delta_k\le d\}|/|\mathcal{P}|$, so there is no
+guesswork about when to stop.
+\end{minipage}
+\figcap{First two principal components of the mean-pooled latents, one round
+shown as illustration. The seed fills the dense core; every new pick lands on
+the sparse rim.}
 \end{tcolorbox}
 
 \end{column}
@@ -312,20 +321,14 @@ environments, a \good{680$\times$} multiplier on the \DFTFE\ budget.
 \begin{itemize}
   \item \key{\DFTFE\ is the enabler.} Semi-periodic boundary conditions,
         impossible in a plane-wave basis, plus ground states on
-        420--1378-atom cells. The interface is resolved as a finite region
-        bounded by two free surfaces.
-  \item \key{Coverage-driven latent selection} spends a fixed \DFTFE\ budget
-        on the configurations farthest from everything already labelled, and
-        provably never re-labels a near-duplicate.
-  \item \key{LoRA} ($r=5$, $<$1\% of parameters) absorbs all 108 labels with
-        the pretrained bulk chemistry left intact.
+        420--1378-atom cells.
+  \item \key{Coverage-driven latent selection} spends a fixed budget on the
+        configurations farthest from everything already labelled, and provably
+        never re-labels a near-duplicate.
   \item \key{Force error cut 40\%, energy error cut $4\times$} against the
-        foundation model, improving every round.
+        foundation model, with \key{LoRA} ($r=5$, $<$1\% of parameters)
+        leaving the pretrained bulk chemistry intact.
 \end{itemize}
-\vspace{0.2em}
-Architecture-agnostic: latent FPS, open-boundary real-space labels and LoRA
-transfer directly to Li\,$|$\,LPS, Li\,$|$\,LiPON, NaSICON and other
-solid-state interfaces.
 \end{tcolorbox}
 
 \vspace{0.5em}
@@ -333,7 +336,8 @@ solid-state interfaces.
 \begin{beamercolorbox}[wd=\linewidth,leftskip=1em]{references}
 {\small\textbf{References:}\ [1] Batatia \emph{et al.}, \emph{NeurIPS}
 \textbf{35}, 11423 (2022).\ \ [2] Motamarri \emph{et al.}, \emph{CPC}
-\textbf{246}, 106853 (2020).\ \ [3] Hu \emph{et al.}, \emph{ICLR} (2022).
+\textbf{246}, 106853 (2020).\ \ [3] Hu \emph{et al.}, \emph{ICLR} (2022).\ \
+[4] Varga-Umbrich \emph{et al.}, \emph{ICML} (2026), arXiv:2605.03964.
 \quad\textbf{Acknowledgements:} MATRIX Lab, IISc Bengaluru; OLCF Frontier;
 PARAM Rudra.}
 \end{beamercolorbox}
