@@ -5,7 +5,7 @@
 %%  Scope:  core methodology + energy/force accuracy + data efficiency only
 %% ===========================================================================
 \documentclass[final]{beamer}
-\usepackage[orientation=portrait,size=a0,scale=1.25]{beamerposter}
+\usepackage[orientation=portrait,size=a0,scale=0.88]{beamerposter}
 \usetheme{default}
 
 \usepackage[T1]{fontenc}
@@ -52,16 +52,16 @@
 \setbeamertemplate{enumerate item}{\color{iiscblue}\insertenumlabel.}
 
 %% block = blue title bar + gold rule + tinted body
-\newlength{\blkskip}\setlength{\blkskip}{1.1ex}
+\newlength{\blkskip}\setlength{\blkskip}{0.7ex}
 \makeatletter
 \define@key{beamerframe}{t}[true]{}
 \setbeamertemplate{block begin}{%
   \vskip\blkskip
-  \begin{beamercolorbox}[ht=3.0ex,dp=1.4ex,leftskip=0.7em,rightskip=0.7em]{block title}%
+  \begin{beamercolorbox}[wd=\textwidth,leftskip=0.7em,rightskip=0.7em,sep=0.55ex]{block title}%
     \usebeamerfont{block title}\insertblocktitle%
   \end{beamercolorbox}%
   \nointerlineskip
-  {\color{iiscgold}\rule{\textwidth}{0.10cm}}%
+  \noindent{\color{iiscgold}\rule{\textwidth}{0.10cm}}\par
   \nointerlineskip
   \begin{beamercolorbox}[leftskip=0.7em,rightskip=0.7em,vmode]{block body}%
     \vskip1.0ex\justifying
@@ -70,7 +70,7 @@
 
 \setbeamertemplate{block alerted begin}{%
   \vskip\blkskip
-  \begin{beamercolorbox}[ht=3.0ex,dp=1.4ex,leftskip=0.7em,rightskip=0.7em]{block title alerted}%
+  \begin{beamercolorbox}[wd=\textwidth,leftskip=0.7em,rightskip=0.7em,sep=0.55ex]{block title alerted}%
     \usebeamerfont{block title}\insertblocktitle%
   \end{beamercolorbox}%
   \nointerlineskip
@@ -81,7 +81,7 @@
 
 \setbeamertemplate{block example begin}{%
   \vskip\blkskip
-  \begin{beamercolorbox}[ht=3.0ex,dp=1.4ex,leftskip=0.7em,rightskip=0.7em]{block title example}%
+  \begin{beamercolorbox}[wd=\textwidth,leftskip=0.7em,rightskip=0.7em,sep=0.55ex]{block title example}%
     \usebeamerfont{block title}\insertblocktitle%
   \end{beamercolorbox}%
   \nointerlineskip
@@ -102,7 +102,8 @@
   \begin{beamercolorbox}[wd=\paperwidth,sep=1.3cm,center]{}%
     \color{iiscblue}
     {\fontsize{64}{74}\selectfont\bfseries
-     Latent-Space Driven Active Learning of MLIPs\\[0.25em]
+     Latent-Space Driven Active Learning of MLIPs\par
+     \vskip0.18em
      for Solid Electrolyte--Electrode Interfaces\par}
     \vskip0.55cm
     {\fontsize{34}{40}\selectfont\bfseries\color{iiscgold}
@@ -156,7 +157,7 @@ potentials were built for.
 \vskip0.4em
 \begin{center}\large
 \goldtext{We deliver DFT-level accuracy across that whole space --- for 108
-labels.}
+labels --- and it is \emph{DFT-FE} that makes it possible.}
 \end{center}
 \end{block}
 
@@ -195,9 +196,11 @@ worst component & \wintext{485 meV/\AA}  \\
 \wintext{$-$40\% force error.} \wintext{$-$39\% on the worst component anywhere.}
 \end{center}
 \vskip0.3em
-Three ingredients, each doing one job: \goldtext{latent-space active learning}
-chooses what to label, \goldtext{DFT-FE} produces labels nothing else can, and
-\goldtext{LoRA} absorbs them while the pretrained chemistry stays intact.
+Three ingredients, each doing one job --- and one of them is the enabler:
+\goldtext{DFT-FE} produces open-boundary, large-cell labels \textbf{no other
+reference method can supply}, \goldtext{latent-space active learning} decides
+which of them are worth computing, and \goldtext{LoRA} absorbs them while the
+pretrained chemistry stays intact.
 \end{block}
 
 \begin{block}{A closed loop that learns what to label}
@@ -205,51 +208,49 @@ chooses what to label, \goldtext{DFT-FE} produces labels nothing else can, and
 \resizebox{0.99\textwidth}{!}{%
 \begin{tikzpicture}[x=1cm,y=1cm,>=Stealth,
   bx/.style={draw=iiscblue,very thick,rounded corners=4pt,fill=lightblue,
-             minimum width=2.5cm,minimum height=1.0cm,align=center,
+             text width=3.0cm,minimum height=1.3cm,align=center,
              font=\bfseries\small},
   gx/.style={draw=iiscgold,very thick,rounded corners=4pt,fill=lightgold,
-             minimum width=2.5cm,minimum height=1.0cm,align=center,
+             text width=3.0cm,minimum height=1.3cm,align=center,
              font=\bfseries\small}]
-  \node[bx](slabs) at (0,0)    {Interface\\construction};
-  \node[bx](md)    at (3.1,0)  {MD sampling\\(NVT)};
-  \node[bx](filt)  at (6.2,0)  {Physicality\\filter};
-  \node[bx](emb)   at (9.3,0)  {Latent\\extraction};
-  \node[gx](fps)   at (12.4,0) {FPS seeded\\on train set};
-  \node[bx](dft)   at (15.5,0) {DFT-FE\\labelling};
-  \node[gx](lora)  at (12.4,-2.3){LoRA\\fine-tuning};
+  \node[bx](slabs) at (0,0)      {Interface\\construction};
+  \node[bx](md)    at (4.6,0)    {MD sampling\\(NVT)};
+  \node[bx](filt)  at (9.2,0)    {Physicality\\filter};
+  \node[bx](emb)   at (13.8,0)   {Latent\\extraction};
+  \node[gx](fps)   at (18.4,0)   {FPS seeded\\on train set};
+  \node[bx](dft)   at (23.0,0)   {DFT-FE\\labelling};
+  \node[gx](lora)  at (18.4,-3.4){LoRA\\fine-tuning};
 
   \foreach \i/\j in {slabs/md,md/filt,filt/emb,emb/fps,fps/dft}{
     \draw[->,very thick,color=iiscblue](\i)--(\j);}
   \draw[->,very thick,color=iiscblue](dft.south) |- (lora.east);
-  \draw[thick,dashed,color=iiscgold](lora.west) -- (3.1,-2.3) -- (3.1,-0.6);
-  \draw[->,thick,dashed,color=iiscgold](3.1,-0.6) -- (md.south);
+  \draw[thick,dashed,color=iiscgold](lora.west) -- (4.6,-3.4) -- (4.6,-0.9);
+  \draw[->,thick,dashed,color=iiscgold](4.6,-0.9) -- (md.south);
 
-  \node[font=\scriptsize,text=neutgray,align=center] at (0,-1.05)
+  \node[font=\scriptsize,text=neutgray,align=center] at (0,-1.5)
     {3 Li facets\\5 LLZO terms.};
-  \node[font=\scriptsize,text=neutgray,align=center] at (3.1,-1.05)
-    {550--1100\,K};
-  \node[font=\scriptsize,text=neutgray,align=center] at (6.2,-1.05)
+  \node[font=\scriptsize,text=neutgray,align=center] at (9.2,-1.5)
     {keeps the pool clean};
-  \node[font=\scriptsize,text=neutgray,align=center] at (9.3,-1.05)
+  \node[font=\scriptsize,text=neutgray,align=center] at (13.8,-1.5)
     {256-d\\mean-pooled};
-  \node[font=\scriptsize,text=neutgray,align=center] at (15.5,-1.05)
+  \node[font=\scriptsize,text=neutgray,align=center] at (23.0,-1.5)
     {420--1378 atoms\\open $z$};
-  \node[font=\scriptsize,text=neutgray,align=center] at (14.9,-2.3)
-    {rank 5\\$<$1\% params};
-  \node[font=\scriptsize\itshape,text=iiscgold,align=center] at (3.1,-2.9)
-    {the improved model\\drives the next round};
+  \node[font=\scriptsize,text=neutgray,align=center,anchor=west] at (20.6,-4.15)
+    {rank 5, $<$1\% params};
+  \node[font=\scriptsize\itshape,text=iiscgold,align=center] at (4.6,-4.25)
+    {the improved model drives the next round};
   \begin{scope}[on background layer]
     \draw[dashed,very thick,color=iiscgold,rounded corners=6pt]
-      (1.6,1.35) rectangle (17.0,-3.0);
-    \node[font=\small\bfseries,text=iiscgold] at (9.3,1.75)
+      (2.3,1.6) rectangle (25.2,-4.75);
+    \node[font=\small\bfseries,text=iiscgold] at (13.0,2.05)
       {seven rounds, it0 $\rightarrow$ it6};
   \end{scope}
 \end{tikzpicture}}
 \figcap{Each round samples with the current model, keeps the physical frames,
 embeds them in the model's \emph{own} latent space, selects by farthest-point
 sampling seeded on everything already labelled, labels with DFT-FE, and
-re-fine-tunes. The loop compounds: a better model samples better configurations,
-which select better labels.}
+re-fine-tunes --- a better model samples better configurations, which select
+better labels.}
 \end{block}
 
 \begin{block}{Selection in the model's own latent space}
@@ -302,38 +303,6 @@ $d_{99}=0.0208$, driving a \textbf{62{,}029-frame pool} from
 \end{columns}
 \end{block}
 
-\end{column}
-
-%% ======================= COLUMN 2 =======================================
-\begin{column}{0.465\paperwidth}
-
-\begin{block}{DFT-FE: labels nothing else can produce}
-\begin{columns}[t]
-\begin{column}{0.52\textwidth}
-Plane-wave codes enforce 3D periodicity, forcing an asymmetric
-Li\,$|$\,LLZO slab into a \textbf{sandwich}: a second spurious interface, an
-image dipole, and a hard cap on cell size.
-\vskip0.4em
-DFT-FE is real-space and finite-element, so it admits \textbf{mixed boundary
-conditions} --- periodic in $x,y$, \textbf{open along $z$}. Every training cell
-is \texttt{pbc=[True,True,False]}:
-\wintext{one real interface, two genuine free surfaces}, and
-\wintext{no scale extrapolation} between training and deployment.
-\textbf{The model is trained at the size it is used.}
-\end{column}
-\begin{column}{0.44\textwidth}
-\centering\includegraphics[width=\linewidth]{fig_schematic.pdf}
-\end{column}
-\end{columns}
-\vskip0.5em
-{\small\textbf{Setup:} GGA--PBE \textbullet\ SPMS norm-conserving
-pseudopotentials \textbullet\ FE polynomial order 7 \textbullet\ mesh parameter
-1.2\,\AA\ \textbullet\ atom-centred refinement radius 8\,\AA\ \textbullet\
-Fermi--Dirac smearing 500\,K \textbullet\ SCF $5\times10^{-5}$\,Ha
-\textbullet\ zero Dirichlet in $z$ \textbullet\ OLCF Frontier, 64 nodes
-$\times$ 4 MI250X.}
-\end{block}
-
 \begin{block}{LoRA: new physics, nothing forgotten}
 \begin{columns}[t]
 \begin{column}{0.52\textwidth}
@@ -364,6 +333,63 @@ epochs (SWA from 1000)   & 1500 \\
 {\small Every iteration fine-tunes \textbf{the foundation model afresh}, never
 the previous iteration --- so nothing compounds across rounds and each result
 stands on its own.}
+\end{block}
+
+\end{column}
+
+%% ======================= COLUMN 2 =======================================
+\begin{column}{0.465\paperwidth}
+
+\begin{block}{DFT-FE: the engine that makes all of this possible}
+\textbf{Every label in this work is a DFT-FE calculation, and the campaign
+simply could not be run on any other reference method.} DFT-FE solves
+Kohn--Sham DFT in \textbf{real space} with a systematically improvable
+\textbf{finite-element} basis --- massively parallel, GPU-accelerated, and the
+code behind the \goldtext{2023 ACM Gordon Bell Prize}. Two of its capabilities
+are what this entire pipeline rests on.
+\vskip0.6em
+\begin{columns}[t]
+\begin{column}{0.52\textwidth}
+\begin{exampleblock}{1. Semi-periodic boundary conditions}
+A finite-element basis is local, so periodicity is a \emph{choice per
+direction}, not a requirement. DFT-FE runs
+\texttt{pbc=[True,True,False]} --- \wintext{periodic in $x,y$, genuinely open
+along $z$}.
+\vskip0.3em
+A plane-wave basis cannot do this at all: 3D periodicity forces an asymmetric
+Li\,$|$\,LLZO slab into a \badtext{sandwich} --- a second spurious interface and
+an image dipole --- or into a dipole-corrected compromise.
+\vskip0.3em
+With DFT-FE, every training cell holds \wintext{one real interface and two
+genuine free surfaces}: \textbf{the thing that actually exists.}
+\end{exampleblock}
+\end{column}
+\begin{column}{0.46\textwidth}
+\begin{exampleblock}{2. Scale}
+Real-space domain decomposition scales to cells far beyond plane-wave reach.
+Every one of the \goldtext{108} labels is a full ground-state calculation on
+\wintext{420--1378 atoms}.
+\vskip0.3em
+So the potential is \wintext{trained at the size it is deployed} --- no
+extrapolation from small periodic approximants up to production MD.
+\vskip0.3em
+{\small OLCF Frontier, 64 nodes $\times$ 4 MI250X GPUs, one MPI task per GPU.}
+\end{exampleblock}
+\vskip0.3em
+\centering\includegraphics[width=0.96\linewidth]{fig_schematic.pdf}
+\end{column}
+\end{columns}
+\vskip0.5em
+\begin{center}\large
+\goldtext{Open boundaries fix \emph{what} is modelled; scale fixes \emph{how
+big}. DFT-FE delivers both --- and only then does the rest of this pipeline
+mean anything.}
+\end{center}
+\vskip0.4em
+{\small\textbf{Setup:} GGA--PBE \textbullet\ SPMS pseudopotentials \textbullet\
+FE order 7 \textbullet\ mesh 1.2\,\AA\ \textbullet\ refinement radius 8\,\AA\
+\textbullet\ smearing 500\,K \textbullet\ SCF $5\times10^{-5}$\,Ha \textbullet\
+zero Dirichlet in $z$.}
 \end{block}
 
 \begin{block}{Accuracy: better every single round}
@@ -456,9 +482,11 @@ without ever measuring the error.}
   \item \goldtext{Coverage-driven latent selection} closes a 62{,}029-frame pool
         to \textbf{100\%} with 31 labels, and provably never re-labels a
         near-duplicate.
-  \item \goldtext{DFT-FE} supplies open-boundary labels on 420--1378-atom cells
-        --- one real interface, two free surfaces, \textbf{trained at the scale
-        it is deployed}.
+  \item \goldtext{DFT-FE is the enabler.} Real-space finite elements give
+        \textbf{semi-periodic boundary conditions} --- impossible in a
+        plane-wave basis --- and ground states on \textbf{420--1378-atom}
+        cells. One real interface, two free surfaces, trained at the scale it
+        is deployed. \textbf{Remove DFT-FE and the campaign does not exist.}
   \item \goldtext{LoRA} ($r=5$, $<$1\% parameters) absorbs all 108 labels with
         the pretrained chemistry left intact.
   \item \goldtext{Force error cut 40\%} against the foundation model
@@ -468,9 +496,9 @@ without ever measuring the error.}
         ($r=+0.85$) --- this method is \textbf{measured, not asserted}.
 \end{enumerate}
 \vskip0.4em
-{\small The pipeline is architecture-agnostic: latent FPS $+$ open-boundary
-real-space labels $+$ LoRA transfers directly to Li\,$|$\,LPS,
-Li\,$|$\,LiPON, NaSICON and other solid-state interfaces.}
+{\small Architecture-agnostic: latent FPS, open-boundary real-space labels and
+LoRA transfer directly to Li\,$|$\,LPS, Li\,$|$\,LiPON, NaSICON and other
+solid-state interfaces.}
 \end{block}
 
 \end{column}

@@ -7,3 +7,6 @@ half_*.png
 bottom-*.png
 zoomhero-*.png
 *_backup.tex
+*.nav
+*.snm
+*.toc
