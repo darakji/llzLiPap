@@ -274,3 +274,6 @@ All 50 pass eight hard checks (boundary, composition, contacts, force < 10 eV/A,
 spike, layer integrity, interior LLZO rms < 0.75 A); closest approach 0.87 of a limit (shortest La-O). Zero
 failures bound unphysical frames below 5.8 % at 95 % confidence. Main text Methods cites it as Supplementary
 Note 8. The 50 frames are the natural set for the owed DFT-FE force check (replaces the earlier "12 frames").
+Caveat (2026-10-08): `mace_forces` in data/snapshot_audit_50.extxyz are the forces the integrator used, so
+ALCHEMI's FreezeAtomsHook has zeroed them on the fixed atoms (bottom La/Zr/O and the Li lid). Positions and
+forces are from the same step. Compare against DFT-FE with fresh model evaluations, or with the mobile atoms only.

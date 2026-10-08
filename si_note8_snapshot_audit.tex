@@ -53,7 +53,9 @@ text). Energies measured against the first frame of a chunk move by up to
 starting structure; thereafter the chunk-mean energy of a trajectory is
 constant to 1~meV/atom over 5~ns. The 50 frames, with their MACE energies and
 forces, are provided as \texttt{snapshot\_audit\_50.extxyz} for independent
-first-principles single-point checks.
+first-principles single-point checks. The stored forces are those the
+integrator used, so they are zero on the fixed atoms; force errors against
+first-principles labels are computed from fresh model evaluations.
 
 \begin{figure}[h]
 \centering
