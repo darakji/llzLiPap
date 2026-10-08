@@ -3,3 +3,4 @@
 *.out
 *.pdf
 !figs/*.pdf
+!poster/figs/*.pdf
