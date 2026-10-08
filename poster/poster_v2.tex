@@ -1,0 +1,378 @@
+%% ===========================================================================
+%%  Latent-space driven active learning of MLIPs for Li|LLZO interfaces
+%%  Portrait 84 x 119 cm, DFT-FE theme, two columns, light only.
+%%  Layout follows github.com/darakji/oldHiPC2025Poster
+%%  Build: tectonic poster_v2.tex
+%% ===========================================================================
+\documentclass[serif,mathserif,final]{beamer}
+\mode<presentation>{\usetheme{DFTFE}}
+\usepackage{amsmath,amsfonts,amssymb,pxfonts,eulervm,xspace}
+\usepackage{graphicx}
+\usepackage{ragged2e}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage[many]{tcolorbox}
+\usepackage{multirow}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes,patterns,backgrounds,fit}
+\graphicspath{{figs/}{./}}
+\usepackage[orientation=portrait,size=custom,height=119,width=84,scale=1.3]{beamerposter}
+
+\newcommand{\DFTFE}{\texttt{DFT-FE}}
+\newcommand{\LLZO}{Li$_7$La$_3$Zr$_2$O$_{12}$}
+
+%% -- light palette ---------------------------------------------------------
+\definecolor{titlegray}{RGB}{226,234,237}
+\definecolor{framegray}{RGB}{150,165,172}
+\definecolor{inkblue}{RGB}{23,70,118}
+\definecolor{accentred}{RGB}{150,25,35}
+\definecolor{goodgreen}{RGB}{20,95,45}
+\definecolor{oxide}{RGB}{154,176,201}
+\definecolor{metal}{RGB}{206,198,178}
+\definecolor{iface}{RGB}{246,214,160}
+\definecolor{vac}{RGB}{245,247,248}
+\definecolor{dimgraytext}{RGB}{95,100,105}
+
+\tcbset{
+  posterbox/.style={
+    enhanced, breakable=false,
+    colback=white, colframe=framegray,
+    colbacktitle=titlegray, coltitle=black,
+    fonttitle=\Large\bfseries\scshape,
+    boxrule=1.1pt, arc=3mm,
+    left=2.5mm, right=2.5mm, top=2mm, bottom=2mm,
+    toptitle=1.2mm, bottomtitle=1.2mm,
+    titlerule=0pt
+  }
+}
+
+\newcommand{\good}[1]{\textcolor{goodgreen}{\textbf{#1}}}
+\newcommand{\bad}[1]{\textcolor{accentred}{\textbf{#1}}}
+\newcommand{\key}[1]{\textcolor{inkblue}{\textbf{#1}}}
+\newcommand{\figcap}[1]{\par\vspace{0.25em}{\small\textcolor{dimgraytext}{#1}}}
+
+%% the theme's headline wants logos we do not ship; the header is built in-frame
+\setbeamertemplate{headline}{}
+\setbeamertemplate{footline}{}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{postertitle}{fg=black,bg=titlegray}
+\setbeamertemplate{itemize item}{\color{inkblue}$\blacksquare$}
+\setbeamertemplate{itemize subitem}{\color{framegray}$\blacktriangleright$}
+
+\begin{document}
+\setbeamerfont{normal text}{size=\large}
+\setbeamerfont{block body}{size=\large}
+
+\begin{frame}[t]
+
+%--- Header ---------------------------------------------------------------
+\begin{beamercolorbox}[sep=0.6em,center,wd=\paperwidth]{postertitle}
+  {\huge\textbf{Latent-Space Driven Active Learning of Machine-Learned
+   Potentials for Solid Electrolyte--Electrode Interfaces}}\\[0.45em]
+  {\LARGE\textbf{Application to Li\,$|$\,\LLZO\ at \DFTFE\ Scale}}\\[0.7em]
+  {\Large Mehul Darak, \ Rajdeep Boral, \ Kartick Ramakrishnan, \
+   Phani Motamarri, \ G.~P.~Das}\\[0.35em]
+  {\large Department of Computational and Data Sciences, Indian Institute of
+   Science, Bengaluru, India \quad$\bullet$\quad TCG CREST, Kolkata, India}
+\end{beamercolorbox}
+\vspace{0.35cm}
+
+\begin{columns}[t]
+
+%% =========================== LEFT COLUMN ===============================
+\begin{column}{0.48\paperwidth}
+
+\begin{tcolorbox}[posterbox,title=Motivation: the interface decides the battery]
+\justifying
+Solid-state batteries live or die at the Li-metal\,$|$\,electrolyte interface.
+Resolving that chemistry demands molecular dynamics on \textbf{hundreds to
+thousands of atoms} --- precisely the regime machine-learned interatomic
+potentials (MLIPs) were built for.
+\vspace{0.4em}
+\begin{itemize}
+  \item \LLZO\ against Li metal is \textbf{the} prototypical case: a metal and
+        a complex oxide, with strong chemical and structural mismatch.
+  \item One interface supercell is \textbf{420--1378 atoms}. Orientation,
+        termination and Li-site disorder open a configuration space that no
+        direct-DFT campaign can sample.
+  \item Foundation MLIPs are trained overwhelmingly on near-equilibrium
+        \emph{bulk}, so interfaces are out of distribution and forces are
+        \bad{systematically underestimated} where the physics lives.
+\end{itemize}
+\vspace{0.3em}
+\begin{center}\Large
+\key{Two problems: what reference method can label these cells at all, and
+which cells are worth labelling.}
+\end{center}
+\end{tcolorbox}
+
+\vspace{0.7em}
+
+\begin{tcolorbox}[posterbox,title=\DFTFE: the engine that makes this possible]
+\justifying
+\textbf{Every label in this work is a \DFTFE\ calculation, and the campaign
+could not be run on any other reference method.} \DFTFE\ solves Kohn--Sham DFT
+in \textbf{real space} on a systematically improvable \textbf{finite-element}
+basis --- massively parallel, GPU-accelerated, and the code behind the
+\key{2023 ACM Gordon Bell Prize}.
+\vspace{0.5em}
+
+\begin{center}
+\begin{tikzpicture}[x=1mm,y=1mm,
+   lbl/.style={font=\sffamily\bfseries\normalsize},
+   sub/.style={font=\sffamily\small,align=center},
+   slab/.style={font=\sffamily\bfseries\small},
+   caplbl/.style={font=\sffamily\small,align=center}]
+  %% ---------- panel A : plane-wave sandwich ----------
+  \node[lbl] at (85,112) {Plane-wave DFT};
+  \node[sub] at (85,101) {forced 3D periodicity};
+  \fill[oxide] (0,56)   rectangle (50,88);
+  \fill[metal] (50,56)  rectangle (120,88);
+  \fill[oxide] (120,56) rectangle (170,88);
+  \node[slab] at (25,72)  {LLZO};
+  \node[slab] at (85,72)  {Li metal};
+  \node[slab] at (145,72) {LLZO};
+  \draw[accentred,line width=2.2pt] (50,50)--(50,94);
+  \draw[accentred,line width=2.2pt] (120,50)--(120,94);
+  \draw[framegray,line width=1.6pt,dashed] (0,48)--(0,96);
+  \draw[framegray,line width=1.6pt,dashed] (170,48)--(170,96);
+  \node[caplbl,text=accentred] at (85,36)
+    {two interfaces $\bullet$ image dipole\\no free surface};
+  %% ---------- panel B : DFT-FE, open z ----------
+  \node[lbl] at (295,112) {\DFTFE};
+  \node[sub] at (295,101) {periodic in $x,y$, open in $z$};
+  \fill[vac]   (210,56) rectangle (238,88);
+  \fill[oxide] (238,56) rectangle (292,88);
+  \fill[iface] (292,56) rectangle (320,88);
+  \fill[metal] (320,56) rectangle (356,88);
+  \fill[vac]   (356,56) rectangle (380,88);
+  \draw[framegray,dashed] (210,56) rectangle (238,88);
+  \draw[framegray,dashed] (356,56) rectangle (380,88);
+  \node[caplbl,text=dimgraytext] at (224,72) {vac};
+  \node[slab] at (265,72) {LLZO};
+  \node[slab] at (338,72) {Li};
+  \node[caplbl,text=dimgraytext] at (368,72) {vac};
+  % two genuine free surfaces
+  \draw[goodgreen,line width=2.6pt] (238,50)--(238,94);
+  \draw[goodgreen,line width=2.6pt] (356,50)--(356,94);
+  % the interface is a REGION, not a plane
+  \draw[accentred,line width=2.2pt] (292,50)--(292,94);
+  \draw[accentred,line width=2.2pt] (320,50)--(320,94);
+  \draw[accentred,line width=1.8pt,{Latex[length=2.6mm]}-{Latex[length=2.6mm]}]
+      (292,46)--(320,46);
+  \node[caplbl,text=accentred,anchor=west] at (323,46) {interfacial \emph{region}};
+  \node[caplbl,text=goodgreen] at (295,26)
+    {one interface, resolved as a finite region\\two genuine free surfaces};
+\end{tikzpicture}
+\end{center}
+\figcap{The interface is not a single plane. Chemistry, space charge and the
+first liquid-like metal layer occupy a \textbf{band of finite thickness}, and
+the open-$z$ cell resolves that band together with the two free surfaces that
+bound the slab.}
+\vspace{0.5em}
+
+\begin{itemize}
+  \item \key{Semi-periodic boundary conditions.} A finite-element basis is
+        local, so periodicity is a \emph{choice per direction}:
+        \texttt{pbc=[True,True,False]}. A plane-wave basis cannot do this ---
+        3D periodicity forces a \bad{sandwich} with a spurious second
+        interface and an image dipole.
+  \item \key{Scale.} Real-space domain decomposition puts every label at
+        \good{420--1378 atoms}, so the potential is \good{trained at the size
+        it is deployed} --- no extrapolation up from small periodic
+        approximants.
+\end{itemize}
+\vspace{0.3em}
+{\small\textbf{Setup:} GGA--PBE $\bullet$ SPMS pseudopotentials $\bullet$ FE
+order 7 $\bullet$ mesh 1.2\,\AA\ $\bullet$ refinement radius 8\,\AA\ $\bullet$
+smearing 500\,K $\bullet$ SCF $5\times10^{-5}$\,Ha $\bullet$ zero Dirichlet in
+$z$ $\bullet$ OLCF Frontier, 64 nodes $\times$ 4 MI250X.}
+\end{tcolorbox}
+
+\vspace{0.7em}
+
+\begin{tcolorbox}[posterbox,title=Coverage-driven active learning]
+\justifying
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=Stealth,
+  bx/.style={draw=framegray,very thick,rounded corners=4pt,fill=titlegray,
+             text width=6.0cm,minimum height=2.4cm,align=center,
+             font=\sffamily\bfseries\small},
+  gx/.style={draw=inkblue,very thick,rounded corners=4pt,fill=oxide!45,
+             text width=6.0cm,minimum height=2.4cm,align=center,
+             font=\sffamily\bfseries\small},
+  ann/.style={font=\sffamily\scriptsize,text=dimgraytext,align=center}]
+  \node[bx](a) at (0,0)      {Interface\\construction};
+  \node[bx](b) at (8.4,0)    {MD sampling (NVT)};
+  \node[bx](c) at (16.8,0)   {Physicality filter};
+  \node[bx](d) at (25.2,0)   {Latent extraction};
+  \node[gx](e) at (25.2,-6.0){FPS seeded on\\training set};
+  \node[bx](f) at (16.8,-6.0){\DFTFE\ labelling};
+  \node[gx](g) at (8.4,-6.0) {LoRA fine-tuning};
+  \foreach \i/\j in {a/b,b/c,c/d}{\draw[->,very thick,inkblue](\i)--(\j);}
+  \draw[->,very thick,inkblue](d)--(e);
+  \draw[->,very thick,inkblue](e)--(f);
+  \draw[->,very thick,inkblue](f)--(g);
+  \draw[->,very thick,dashed,accentred](g)--(b);
+  \node[ann] at (25.2,-8.1){coverage-driven};
+  \node[ann] at (16.8,-8.1){420--1378 atoms, open $z$};
+  \node[ann] at (8.4,-8.1) {rank 5, $<$1\% of parameters};
+  \node[font=\sffamily\bfseries\small,text=inkblue] at (12.6,2.4)
+    {seven rounds, it0 $\rightarrow$ it6};
+  \begin{scope}[on background layer]
+    \draw[dashed,very thick,framegray,rounded corners=6pt]
+      (-3.4,1.7) rectangle (28.6,-8.9);
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+\figcap{Each round samples with the current model, keeps the physical frames,
+embeds them in the model's own latent space, selects by farthest-point
+sampling seeded on everything already labelled, labels with \DFTFE, and
+re-fine-tunes the foundation model on the cumulative set.}
+\vspace{0.5em}
+
+Candidates are embedded with the \textbf{current} model: the rotationally
+invariant ($\ell=0$) scalars of the final interaction block give
+$\mathbf{z}_i\in\mathbb{R}^{256}$ per atom, mean-pooled to
+$\mathbf{Z}_S=\frac{1}{N_S}\sum_i\mathbf{z}_i$. Distance here is
+\textbf{the model's own measure of chemical difference}.
+\vspace{0.3em}
+\begin{equation*}
+k^{*}=\operatorname*{arg\,max}_{k\in\mathcal{P}}\,
+\min_{s\in\mathcal{S}}\lVert \mathbf{Z}_k-\mathbf{Z}_s\rVert_2,
+\qquad
+\delta_k=\min_{s\in\mathcal{S}}\lVert \mathbf{Z}_k-\mathbf{Z}_s\rVert_2,
+\qquad \rho=\max_k \delta_k
+\end{equation*}
+Seeding on the set \emph{already labelled} means a near-duplicate
+\good{can never be selected} --- de-duplication is guaranteed by
+construction, not enforced by a tuned threshold. A round closes when the
+worst-covered candidate falls inside the chosen coverage percentile of
+$C(d)=|\{k:\delta_k\le d\}|/|\mathcal{P}|$, so \textbf{there is no guesswork
+about when to stop}.
+\end{tcolorbox}
+
+\end{column}
+
+%% =========================== RIGHT COLUMN ==============================
+\begin{column}{0.48\paperwidth}
+
+\begin{tcolorbox}[posterbox,title=Accuracy against \DFTFE]
+\justifying
+\begin{minipage}[t]{0.50\linewidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{fig_error.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\vspace{0pt}
+\centering\normalsize
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{model} & \multicolumn{2}{c}{$\Delta F$ rms} & \multicolumn{2}{c}{$\Delta F$ max-comp}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & mean & max & mean & max\\
+\midrule
+foundation & \bad{121.2} & 201.9 & \bad{792.3} & 1665.9\\
+it0 & 188.1 & 330.4 & 1320.6 & 2472.6\\
+it1 & 117.2 & 167.8 &  767.4 & 1239.5\\
+it2 &  94.6 & 163.7 &  640.3 & 1190.3\\
+it3 &  90.5 & 158.2 &  612.4 & 1111.7\\
+it4 &  83.7 & 128.9 &  574.5 &  914.5\\
+it5 &  77.2 & 112.9 &  516.2 &  900.1\\
+\midrule
+\textbf{it6} & \good{72.4} & \good{99.9} & \good{485.2} & \good{746.8}\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\figcap{Component-wise force error across the campaign on the 33-structure
+in-domain held-out set, meV/\AA. Every round improves on the one before it.}
+\vspace{0.5em}
+\begin{itemize}
+  \item \good{$-$40\% force rms} against the foundation model, and the worst
+        single component anywhere --- what governs MD stability --- falls
+        \good{1321 $\rightarrow$ 485 meV/\AA} across the campaign.
+  \item Energy reaches \good{$\sim$4 meV/atom} early and holds there through
+        every later round: chemical accuracy achieved and never given back,
+        leaving the whole remaining budget to drive forces down.
+\end{itemize}
+{\small All values in meV/\AA; every held-out structure is an independent
+\DFTFE\ single-point calculation. The foundation model uses a different
+absolute-energy convention, so its $\Delta E$ is not comparable.}
+\end{tcolorbox}
+
+\vspace{0.35em}
+\vspace{0.35em}
+
+\begin{tcolorbox}[posterbox,title=The acquisition rule is validated]
+\justifying
+\begin{center}
+\includegraphics[width=0.88\linewidth]{fig_uq.pdf}
+\end{center}
+\figcap{Gaussian-process posterior variance computed in the latent space
+\textbf{before} labelling --- a quantity available at selection time ---
+against the error subsequently measured against \DFTFE.}
+\vspace{0.4em}
+\good{$r=+0.85$} on forces and $+0.78$ on energy. It survives leave-one-out
+($[+0.82,+0.87]$), bootstrap (95\% CI $[+0.69,+0.93]$) and control for
+structure size, and the selected set \good{beat all 1000} random subsets of
+equal size. Selection therefore \textbf{spends the \DFTFE\ budget where the
+model is actually wrong --- without ever measuring the error.}
+\end{tcolorbox}
+
+\vspace{0.35em}
+
+\begin{tcolorbox}[posterbox,title=Data efficiency across the campaign]
+\justifying
+\begin{center}\large
+\begin{tabular}{lr}
+\toprule
+configurations screened (five recorded rounds) & 414{,}019 \\
+\textbf{\DFTFE\ labelled, total}               & \key{108} \\
+local environments learned from                & \good{73{,}634} \\
+in-domain held out                             & 33 \\
+cell size, atoms                               & 420--1378 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.5em}
+MACE sees each atom inside its cutoff sphere, so \textbf{every atom in a
+labelled cell is a training example}: 108 structures buy 73{,}634 local
+environments, a \good{680$\times$} multiplier on the \DFTFE\ budget.
+\end{tcolorbox}
+
+\begin{tcolorbox}[posterbox,title=Conclusions,colframe=inkblue]
+\justifying
+\begin{itemize}
+  \item \key{\DFTFE\ is the enabler.} Real-space finite elements give
+        semi-periodic boundary conditions --- impossible in a plane-wave basis
+        --- and ground states on 420--1378-atom cells, resolving the interface
+        as a finite region bounded by two free surfaces.
+  \item \key{Coverage-driven latent selection} spends a fixed \DFTFE\ budget
+        on the configurations farthest from everything already labelled, and
+        provably never re-labels a near-duplicate.
+  \item \key{LoRA} ($r=5$, $<$1\% of parameters) absorbs all 108 labels with
+        the pretrained bulk chemistry left intact.
+  \item \key{Force error cut 40\%} against the foundation model, improving
+        every round, with energy at chemical accuracy throughout.
+  \item \key{The acquisition rule is independently validated} ($r=+0.85$):
+        the method is measured, not asserted.
+\end{itemize}
+\vspace{0.3em}
+Architecture-agnostic: latent FPS, open-boundary real-space labels and LoRA
+transfer directly to Li\,$|$\,LPS, Li\,$|$\,LiPON, NaSICON and other
+solid-state interfaces.
+\end{tcolorbox}
+
+\vspace{0.35em}
+
+\begin{beamercolorbox}[wd=\linewidth,leftskip=1em]{references}
+{\small\textbf{References:}\ [1] Batatia \emph{et al.}, \emph{NeurIPS} \textbf{35}, 11423 (2022).\ \
+[2] Motamarri \emph{et al.}, \emph{CPC} \textbf{246}, 106853 (2020).\ \
+[3] Hu \emph{et al.}, \emph{ICLR} (2022). \quad
+\textbf{Acknowledgements:} MATRIX Lab, IISc Bengaluru; OLCF Frontier; PARAM Rudra.}
+\end{beamercolorbox}
+
+\end{column}
+\end{columns}
+\end{frame}
+\end{document}
