@@ -112,18 +112,20 @@ worth labelling?}
 DFT in \textbf{real space} on a finite-element basis: massively parallel,
 GPU-accelerated, and the code behind the \key{2023 ACM Gordon Bell Prize}.
 \begin{center}
-\begin{minipage}[t]{0.485\linewidth}\centering
-\vspace{0pt}
+\begin{minipage}[t][20.2cm][t]{0.485\linewidth}\centering
 {\sffamily\bfseries\small Plane-wave DFT}\\[0.1em]
-{\sffamily\footnotesize forced 3D periodicity}\\[0.35em]
-\includegraphics[width=\linewidth]{cell_planewave.png}\\[0.25em]
-{\sffamily\footnotesize\color{accentred}two interfaces $\bullet$ image dipole\\no free surface}
+{\sffamily\footnotesize forced 3D periodicity}\\[0.45em]
+\setlength{\fboxsep}{2.5mm}\setlength{\fboxrule}{1.1pt}%
+{\color{framegray}\fbox{\includegraphics[width=\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax]{cell_planewave.png}}}%
+\vfill
+{\sffamily\footnotesize\color{accentred}two interfaces $\bullet$ image dipole $\bullet$ no free surface}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.485\linewidth}\centering
-\vspace{0pt}
+\begin{minipage}[t][20.2cm][t]{0.485\linewidth}\centering
 {\sffamily\bfseries\small \DFTFE}\\[0.1em]
-{\sffamily\footnotesize periodic in $x,y$, open in $z$}\\[0.35em]
-\includegraphics[width=\linewidth]{cell_dftfe.png}\\[0.25em]
+{\sffamily\footnotesize periodic in $x,y$, open in $z$}\\[0.45em]
+\setlength{\fboxsep}{2.5mm}\setlength{\fboxrule}{1.1pt}%
+{\color{framegray}\fbox{\includegraphics[width=\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax]{cell_dftfe.png}}}%
+\vfill
 {\sffamily\footnotesize\color{goodgreen}one interface $\bullet$ two genuine free surfaces}
 \end{minipage}
 \end{center}
@@ -196,11 +198,11 @@ strong acquisition signals for active learning of MLIPs [4].
 
 \begin{tcolorbox}[posterbox,title=Accuracy against \DFTFE]
 \justifying
-\begin{minipage}[t]{0.56\linewidth}
+\begin{minipage}[t]{0.50\linewidth}
 \vspace{0pt}
 \includegraphics[width=\linewidth]{fig_error_big.pdf}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.41\linewidth}
+\begin{minipage}[t]{0.47\linewidth}
 \vspace{0pt}
 \centering\normalsize
 \begin{tabular}{lrrr}
